@@ -17,6 +17,10 @@
     "url": "https://github.com/coinosis/owl/issues"
   },
   "homepage": "https://github.com/coinosis/owl#readme",
+  "engines": {
+    "node": "12.16.1",
+    "npm": "6.14.4"
+  },
   "dependencies": {
     "express": "^4.17.1"
   }

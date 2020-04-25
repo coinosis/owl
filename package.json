@@ -1,0 +1,20 @@
+{
+  "name": "owl",
+  "private": true,
+  "version": "0.1.0",
+  "main": "index.js",
+  "description": "centralized back-end for coinosis",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coinosis/owl.git"
+  },
+  "author": "@e18r",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/coinosis/owl/issues"
+  },
+  "homepage": "https://github.com/coinosis/owl#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}

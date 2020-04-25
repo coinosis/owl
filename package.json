@@ -8,6 +8,9 @@
     "type": "git",
     "url": "git+https://github.com/coinosis/owl.git"
   },
+  "scripts": {
+    "start": "node index.js"
+  },
   "author": "@e18r",
   "license": "GPL-3.0-or-later",
   "bugs": {

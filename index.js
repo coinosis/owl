@@ -18,7 +18,12 @@ dbClient.connect((error) => {
 
   app.get('/users', async (req, res) => {
     const userList = await users.find().toArray();
-    res.status(200).json(userList);
+    res.json(userList);
+  });
+
+  app.get('/user/:address(0x[a-fA-F0-9]{40})', async (req, res) => {
+    const user = await users.find({address: req.params.address}).toArray();
+    res.json(user);
   });
 
   app.post('/users', async (req, res) => {

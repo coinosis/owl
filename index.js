@@ -2,20 +2,18 @@ const express = require('express');
 const Web3Utils = require('web3-utils');
 const MongoClient = require('mongodb').MongoClient;
 
+const port = process.env.PORT || 3000;
+const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017/coinosis';
+
 const app = express();
 app.use(express.json());
-const port = process.env.PORT || 3000;
-
-const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-const dbName = 'heroku_t2bt9b8m';
-
 const dbClient = new MongoClient(dbUrl, { useUnifiedTopology: true });
 dbClient.connect((error) => {
   if(error) {
     console.error(error);
     return;
   }
-  const db = dbClient.db(dbName);
+  const db = dbClient.db();
   const users = db.collection('users');
 
   app.get('/users', async (req, res) => {

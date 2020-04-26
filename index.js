@@ -7,7 +7,7 @@ app.use(express.json());
 const port = process.env.PORT || 3000;
 
 const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-const dbName = 'coinosis';
+const dbName = 'heroku_t2bt9b8m';
 
 const dbClient = new MongoClient(dbUrl, { useUnifiedTopology: true });
 dbClient.connect((error) => {

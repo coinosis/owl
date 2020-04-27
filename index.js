@@ -1,13 +1,16 @@
 const express = require('express');
 const Web3Utils = require('web3-utils');
 const MongoClient = require('mongodb').MongoClient;
+const cors = require('cors');
 
 const port = process.env.PORT || 3000;
 const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017/coinosis';
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 const dbClient = new MongoClient(dbUrl, { useUnifiedTopology: true });
+
 dbClient.connect((error) => {
   if(error) {
     console.error(error);
@@ -22,8 +25,13 @@ dbClient.connect((error) => {
   });
 
   app.get('/user/:address(0x[a-fA-F0-9]{40})', async (req, res) => {
-    const user = await users.find({address: req.params.address}).toArray();
-    res.json(user);
+    const userFilter = await users.find({address: req.params.address})
+          .toArray();
+    if (!userFilter.length) {
+      res.status(404).end();
+      return;
+    }
+    res.json(userFilter[0]);
   });
 
   app.post('/users', async (req, res) => {
@@ -52,8 +60,13 @@ dbClient.connect((error) => {
       res.status(400).end();
       return;
     }
-    users.insertOne({name, address});
-    res.status(201).end();
+    const effect = await users.insertOne({name, address});
+    if (effect.result.ok && effect.ops.length) {
+      res.status(201).json(effect.ops[0]);
+    } else {
+      console.log(effect);
+      res.status(500).end();
+    }
   });
 });
 

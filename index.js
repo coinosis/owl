@@ -19,6 +19,10 @@ dbClient.connect((error) => {
   const db = dbClient.db();
   const users = db.collection('users');
 
+  app.get('/', (req, res) => {
+    res.end();
+  });
+
   app.get('/users', async (req, res) => {
     const userList = await users.find().toArray();
     res.json(userList);

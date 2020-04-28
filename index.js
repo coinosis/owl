@@ -18,6 +18,7 @@ dbClient.connect((error) => {
   }
   const db = dbClient.db();
   const users = db.collection('users');
+  const assessments = db.collection('assessments');
 
   app.get('/', (req, res) => {
     res.end();
@@ -65,6 +66,79 @@ dbClient.connect((error) => {
       return;
     }
     const effect = await users.insertOne({name, address});
+    if (effect.result.ok && effect.ops.length) {
+      res.status(201).json(effect.ops[0]);
+    } else {
+      console.log(effect);
+      res.status(500).end();
+    }
+  });
+
+  app.post('/assessments', async (req, res) => {
+    const params = Object.keys(req.body);
+    if (params.length !== 2) {
+      console.error('wrong param length');
+      console.error(params.length);
+      res.status(400).end();
+      return;
+    }
+    if (!params.includes('sender') || !params.includes('assessment')) {
+      console.error('wrong params');
+      console.error(params);
+      res.status(400).end();
+      return;
+    }
+    const sender = req.body.sender;
+    if (!Web3Utils.isAddress(sender)) {
+      console.error('sender is not an address');
+      console.error(sender);
+      res.status(400).end();
+      return;
+    }
+    const assessment = req.body.assessment;
+    if (typeof assessment !== 'object') {
+      console.error('assessment is not an object');
+      console.error(assessment);
+      res.status(400).end();
+      return;
+    }
+    const addresses = Object.keys(assessment);
+    const userList = await users.find().toArray();
+    if (addresses.length !== userList.length - 1) {
+      console.error('wrong assessment length');
+      console.error(`${addresses.length} !== ${userList.length - 1}`);
+      res.status(400).end();
+      return;
+    }
+    for (const i in addresses) {
+      if (!Web3Utils.isAddress(addresses[i])) {
+        console.error('this is not an address');
+        console.error(addresses[i]);
+        res.status(400).end();
+        return;
+      }
+    }
+    const claps = Object.values(assessment);
+    for (const i in claps) {
+      if (
+        isNaN(claps[i])
+          || claps[i] < 0
+          || Number(claps[i]) !== Math.round(claps[i])
+      ) {
+        console.error('this is no natural number');
+        console.error(claps[i]);
+        res.status(400).end();
+        return;
+      }
+    }
+    const existing = await assessments.find({sender}).toArray();
+    if (existing.length > 0) {
+      console.error('assessment already exists');
+      console.error(existing)
+      res.status(400).end();
+      return;
+    }
+    const effect = await assessments.insertOne(req.body);
     if (effect.result.ok && effect.ops.length) {
       res.status(201).json(effect.ops[0]);
     } else {

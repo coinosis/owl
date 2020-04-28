@@ -18,6 +18,17 @@ mongod --dbpath=testdb
 
 ```
 
+## interact with the database
+
+```bash
+
+mongo
+use coinosis
+users = db.getCollection('users')
+users.find()
+
+```
+
 ## deploy to heroku
 
 1. create a heroku account

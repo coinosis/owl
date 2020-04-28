@@ -74,6 +74,16 @@ dbClient.connect((error) => {
     }
   });
 
+  app.get('/assessment/:sender(0x[a-fA-F0-9]{40})', async (req, res) => {
+    const query = {sender: req.params.sender};
+    const assessmentFilter = await assessments.find(query).toArray();
+    if (!assessmentFilter.length) {
+      res.status(404).end();
+      return;
+    }
+    res.json(assessmentFilter[0]);
+  });
+
   app.post('/assessments', async (req, res) => {
     const params = Object.keys(req.body);
     if (params.length !== 2) {

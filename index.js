@@ -30,8 +30,8 @@ dbClient.connect((error) => {
   });
 
   app.get('/user/:address(0x[a-fA-F0-9]{40})', async (req, res) => {
-    const userFilter = await users.find({address: req.params.address})
-          .toArray();
+    const query = {address: req.params.address};
+    const userFilter = await users.find(query).toArray();
     if (!userFilter.length) {
       res.status(404).end();
       return;
@@ -131,10 +131,17 @@ dbClient.connect((error) => {
         return;
       }
     }
-    const existing = await assessments.find({sender}).toArray();
-    if (existing.length > 0) {
+    const userFilter = await users.find({address: sender}).toArray();
+    if (userFilter.length < 1) {
+      console.error('user not registered');
+      console.error(userList.map(user => user.address));
+      res.status(400).end();
+      return;
+    }
+    const assessmentFilter = await assessments.find({sender}).toArray();
+    if (assessmentFilter.length > 0) {
       console.error('assessment already exists');
-      console.error(existing)
+      console.error(assessmentFilter)
       res.status(400).end();
       return;
     }

@@ -25,7 +25,9 @@ mongod --dbpath=testdb
 mongo
 use coinosis
 users = db.getCollection('users')
+assessments = db.getCollection('assessments')
 users.find()
+assessments.find()
 
 ```
 

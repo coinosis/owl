@@ -74,6 +74,11 @@ dbClient.connect((error) => {
     }
   });
 
+  app.get('/assessments', async (req, res) => {
+    const assessmentList = await assessments.find().toArray();
+    res.json(assessmentList);
+  });
+
   app.get('/assessment/:sender(0x[a-fA-F0-9]{40})', async (req, res) => {
     const query = {sender: req.params.sender};
     const assessmentFilter = await assessments.find(query).toArray();
@@ -123,6 +128,23 @@ dbClient.connect((error) => {
     for (const i in addresses) {
       if (!Web3Utils.isAddress(addresses[i])) {
         console.error('this is not an address');
+        console.error(addresses[i]);
+        res.status(400).end();
+        return;
+      }
+    }
+    for (const i in addresses) {
+      if (addresses[i] === sender) {
+        console.error('sender can\'t assess themselves');
+        console.error(addresses[i]);
+        res.status(400).end();
+        return;
+      }
+    }
+    for (const i in addresses) {
+      const userFilter = await users.find({address: addresses[i]}).toArray();
+      if (userFilter.length < 1) {
+        console.error('address not registered');
         console.error(addresses[i]);
         res.status(400).end();
         return;

@@ -1,5 +1,7 @@
 ## install
 
+First install mongodb in your system: https://docs.mongodb.com/manual/administration/install-community/
+
 ```bash
 
 git clone https://github.com/coinosis/owl
@@ -12,7 +14,6 @@ npm i
 
 ```bash
 
-// install mongo in your system
 mkdir testdb
 npx mongod --dbpath=testdb
 npm i -g nodemon

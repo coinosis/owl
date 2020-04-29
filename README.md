@@ -12,9 +12,11 @@ npm i
 
 ```bash
 
+// install mongo in your system
+mkdir testdb
+npx mongod --dbpath=testdb
 npm i -g nodemon
 nodemon index.js
-mongod --dbpath=testdb
 
 ```
 

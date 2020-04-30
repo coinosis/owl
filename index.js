@@ -66,7 +66,7 @@ dbClient.connect((error) => {
       return;
     }
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    const date = new Date().toLocaleString('es-CO');
+    const date = new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' });
     const effect = await users.insertOne({name, address, date, ip});
     if (effect.result.ok && effect.ops.length) {
       res.status(201).json(effect.ops[0]);

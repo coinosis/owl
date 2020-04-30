@@ -5,6 +5,11 @@ const cors = require('cors');
 
 const port = process.env.PORT || 3000;
 const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017/coinosis';
+const dateOptions = {
+  timeZone: 'America/Bogota',
+  dateStyle: 'medium',
+  timeStyle: 'medium'
+};
 
 const app = express();
 app.use(express.json());
@@ -66,7 +71,7 @@ dbClient.connect((error) => {
       return;
     }
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    const date = new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' });
+    const date = new Date().toLocaleString('es-CO', dateOptions);
     const effect = await users.insertOne({name, address, date, ip});
     if (effect.result.ok && effect.ops.length) {
       res.status(201).json(effect.ops[0]);
@@ -164,7 +169,7 @@ dbClient.connect((error) => {
       return;
     }
     const object = req.body;
-    object.date = new Date().toLocaleString('es-CO');
+    object.date = new Date().toLocaleString('es-CO', dateOptions);
     object.ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const effect = await assessments.insertOne(req.body);
     if (effect.result.ok && effect.ops.length) {

@@ -118,13 +118,6 @@ dbClient.connect((error) => {
       return;
     }
     const addresses = Object.keys(assessment);
-    const userList = await users.find().toArray();
-    if (addresses.length !== userList.length - 1) {
-      console.error('wrong assessment length');
-      console.error(`${addresses.length} !== ${userList.length - 1}`);
-      res.status(400).end();
-      return;
-    }
     for (const i in addresses) {
       if (!Web3Utils.isAddress(addresses[i])) {
         console.error('this is not an address');
@@ -163,9 +156,10 @@ dbClient.connect((error) => {
         return;
       }
     }
+    const userList = await users.find().toArray();
     const userFilter = await users.find({address: sender}).toArray();
     if (userFilter.length < 1) {
-      console.error('user not registered');
+      console.error('sender not registered');
       console.error(userList.map(user => user.address));
       res.status(400).end();
       return;

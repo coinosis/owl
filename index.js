@@ -92,54 +92,47 @@ dbClient.connect((error) => {
   app.post('/assessments', async (req, res) => {
     const params = Object.keys(req.body);
     if (params.length !== 2) {
-      console.error('wrong param length');
+      res.status(400).send('wrong param length');
       console.error(params.length);
-      res.status(400).end();
       return;
     }
     if (!params.includes('sender') || !params.includes('assessment')) {
-      console.error('wrong params');
+      res.status(400).send('wrong params');
       console.error(params);
-      res.status(400).end();
       return;
     }
     const sender = req.body.sender;
     if (!Web3Utils.isAddress(sender)) {
-      console.error('sender is not an address');
+      res.status(400).send('sender is not an address');
       console.error(sender);
-      res.status(400).end();
       return;
     }
     const assessment = req.body.assessment;
     if (typeof assessment !== 'object') {
-      console.error('assessment is not an object');
+      res.status(400).send('assessment is not an object');
       console.error(assessment);
-      res.status(400).end();
       return;
     }
     const addresses = Object.keys(assessment);
     for (const i in addresses) {
       if (!Web3Utils.isAddress(addresses[i])) {
-        console.error('this is not an address');
+        res.status(400).send('this is not an address');
         console.error(addresses[i]);
-        res.status(400).end();
         return;
       }
     }
     for (const i in addresses) {
       if (addresses[i] === sender) {
-        console.error('sender can\'t assess themselves');
+        res.status(400).send('sender can\'t assess themselves');
         console.error(addresses[i]);
-        res.status(400).end();
         return;
       }
     }
     for (const i in addresses) {
       const userFilter = await users.find({address: addresses[i]}).toArray();
       if (userFilter.length < 1) {
-        console.error('address not registered');
+        res.status(400).send('address not registered');
         console.error(addresses[i]);
-        res.status(400).end();
         return;
       }
     }
@@ -150,25 +143,22 @@ dbClient.connect((error) => {
           || claps[i] < 0
           || Number(claps[i]) !== Math.round(claps[i])
       ) {
-        console.error('this is no natural number');
+        res.status(400).send('this is no natural number');
         console.error(claps[i]);
-        res.status(400).end();
         return;
       }
     }
     const userList = await users.find().toArray();
     const userFilter = await users.find({address: sender}).toArray();
     if (userFilter.length < 1) {
-      console.error('sender not registered');
+      res.status(400).send('sender not registered');
       console.error(userList.map(user => user.address));
-      res.status(400).end();
       return;
     }
     const assessmentFilter = await assessments.find({sender}).toArray();
     if (assessmentFilter.length > 0) {
-      console.error('assessment already exists');
+      res.status(400).send('assessment already exists');
       console.error(assessmentFilter)
-      res.status(400).end();
       return;
     }
     const effect = await assessments.insertOne(req.body);

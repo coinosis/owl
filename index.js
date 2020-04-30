@@ -65,7 +65,9 @@ dbClient.connect((error) => {
       res.status(400).end();
       return;
     }
-    const effect = await users.insertOne({name, address});
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const date = new Date().toLocaleString('es-CO');
+    const effect = await users.insertOne({name, address, date, ip});
     if (effect.result.ok && effect.ops.length) {
       res.status(201).json(effect.ops[0]);
     } else {
@@ -161,6 +163,9 @@ dbClient.connect((error) => {
       console.error(assessmentFilter)
       return;
     }
+    const object = req.body;
+    object.date = new Date().toLocaleString('es-CO');
+    object.ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const effect = await assessments.insertOne(req.body);
     if (effect.result.ok && effect.ops.length) {
       res.status(201).json(effect.ops[0]);

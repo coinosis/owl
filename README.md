@@ -1,6 +1,8 @@
-## install
+## prerequisites
 
-First install mongodb in your system: https://docs.mongodb.com/manual/administration/install-community/
+* [mongodb](https://docs.mongodb.com/manual/administration/install-community/)
+
+## install
 
 ```bash
 

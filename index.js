@@ -144,7 +144,9 @@ dbClient.connect((error) => {
       }
     }
     const claps = Object.values(assessment);
+    let totalClaps = 0;
     for (const i in claps) {
+      totalClaps += claps[i];
       if (
         isNaN(claps[i])
           || claps[i] < 0
@@ -156,6 +158,11 @@ dbClient.connect((error) => {
       }
     }
     const userList = await users.find().toArray();
+    if (totalClaps > (userList.length - 1) * 3) {
+      res.status(400).send('maximum number of claps exceeded');
+      console.error(totalClaps);
+      return;
+    }
     const userFilter = await users.find({address: sender}).toArray();
     if (userFilter.length < 1) {
       res.status(400).send('sender not registered');

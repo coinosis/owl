@@ -15,6 +15,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 const dbClient = new MongoClient(dbUrl, { useUnifiedTopology: true });
+const version = '1.0.0';
 
 dbClient.connect((error) => {
   if(error) {
@@ -26,7 +27,7 @@ dbClient.connect((error) => {
   const assessments = db.collection('assessments');
 
   app.get('/', (req, res) => {
-    res.end();
+    res.json({version});
   });
 
   app.get('/users', async (req, res) => {

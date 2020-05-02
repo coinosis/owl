@@ -2,11 +2,11 @@
 
 * [mongodb](https://docs.mongodb.com/manual/administration/install-community/)
 
-## install
+## install on a dev environment
 
 ```bash
 
-git clone https://github.com/coinosis/owl
+git clone https://github.com/coinosis/owl -b test
 cd owl
 npm i
 
@@ -22,6 +22,13 @@ npm i -g nodemon
 nodemon index.js
 
 ```
+
+## Submit your changes
+
+1. Commit & push to the `test` branch
+2. Check everything is working in [the test deployment](https://coinosis-test.herokuapp.com)
+3. Create a pull request targeting the `master` branch
+4. Once accepted the code will be running live in [the production deployment](https://coinosis.herokuapp.com)
 
 ## interact with the database
 
@@ -41,3 +48,15 @@ assessments.find()
 1. create a heroku account
 2. install the mongolab add-on
 3. deploy the code
+
+## migrate data from production
+
+first, [install the heroku cli tool](https://devcenter.heroku.com/articles/heroku-cli#download-and-install)
+
+```bash
+
+scripts/prod2test.sh
+mongod --dbpath=devdb
+scripts/test2dev.sh
+
+```

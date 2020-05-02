@@ -17,7 +17,7 @@ npm i
 ```bash
 
 mkdir testdb
-mongod --dbpath=testdb
+mongod --dbpath=devdb
 npm i -g nodemon
 nodemon index.js
 

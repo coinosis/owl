@@ -25,10 +25,12 @@ nodemon index.js
 
 ## Submit your changes
 
-1. Commit & push to the `test` branch
-2. Check everything is working in [the test deployment](https://coinosis-test.herokuapp.com)
-3. Create a pull request targeting the `master` branch
-4. Once accepted the code will be running live in [the production deployment](https://coinosis.herokuapp.com)
+1. Add the relevant tests in `test.js`
+2. Make sure all tests run smoothly: `./test.sh`
+3. Commit & push to the `test` branch
+4. Check everything is working in [the test deployment](https://coinosis-test.herokuapp.com)
+5. Create a pull request targeting the `master` branch
+6. Once accepted the code will be running live in [the production deployment](https://coinosis.herokuapp.com)
 
 ## interact with the database
 

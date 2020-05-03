@@ -9,6 +9,7 @@
     "url": "git+https://github.com/coinosis/owl.git"
   },
   "scripts": {
+    "postinstall": "scripts/initialize.sh",
     "start": "node server.js",
     "start:dev": "mongod --dbpath=devdb & nodemon server.js",
     "test": "./test.sh"

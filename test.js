@@ -40,6 +40,7 @@ const verifyUser = data => {
       && 'address' in data
       && 'date' in data
       && 'ip' in data
+      && 'signature' in data
   );
   assert.equal(address, data.address);
   assert.equal(name, data.name);
@@ -68,6 +69,7 @@ const verifyAssessment = (data, date) => {
       && 'assessment' in data
       && 'date' in data
       && 'ip' in data
+      && 'signature' in data
   );
   assert.equal(address, data.sender);
   assert.closeTo(new Date(data.date).getTime(), date.getTime(), 10000);

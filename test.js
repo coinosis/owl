@@ -2,6 +2,7 @@ const chai = require('chai');
 const assert = chai.assert;
 const fetch = require('node-fetch');
 const Web3EthAccounts = require('web3-eth-accounts');
+const utils = require('web3-utils');
 
 const url = 'http://localhost:3000';
 const infuraKey = '58a2b59a8caa4c2e9834f8c3dd228b06';
@@ -47,7 +48,9 @@ const verifyUser = data => {
 const post = async (endpoint, object, privateKey) => {
   let signedObject = object;
   if (privateKey) {
-    const result = accounts.sign(JSON.stringify(object), privateKey);
+    const payload = JSON.stringify(object);
+    const hex = utils.utf8ToHex(payload);
+    const result = accounts.sign(hex, privateKey);
     const { signature } = result;
     signedObject = { signature, ...object };
   }

@@ -3,6 +3,7 @@ const Web3Utils = require('web3-utils');
 const MongoClient = require('mongodb').MongoClient;
 const cors = require('cors');
 const Web3EthAccounts = require('web3-eth-accounts');
+const utils = require('web3-utils');
 
 const port = process.env.PORT || 3000;
 const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017/coinosis';
@@ -70,10 +71,11 @@ dbClient.connect((error) => {
       console.error(name, address, signature);
       return;
     }
-    const message = JSON.stringify({address, name});
+    const payload = JSON.stringify({address, name});
+    const hex = utils.utf8ToHex(payload);
     let signer;
     try {
-      signer = accounts.recover(message, signature);
+      signer = accounts.recover(hex, signature);
     } catch (err) {
       res.status(400).json('malformed signature');
       console.error(err.message);
@@ -81,7 +83,7 @@ dbClient.connect((error) => {
     }
     if (signer !== address) {
       res.status(401).json('bad signature');
-      console.error(message, signer);
+      console.error(payload, signer, signature);
       return;
     }
     const nameCount = await users.countDocuments({name})
@@ -143,10 +145,11 @@ dbClient.connect((error) => {
       res.status(400).json('empty signature');
       return;
     }
-    const message = JSON.stringify({sender, assessment});
+    const payload = JSON.stringify({sender, assessment});
+    const hex = utils.utf8ToHex(payload);
     let signer;
     try {
-      signer = accounts.recover(message, signature);
+      signer = accounts.recover(hex, signature);
     } catch (err) {
       res.status(400).json('malformed signature');
       console.error(err.message);
@@ -154,7 +157,7 @@ dbClient.connect((error) => {
     }
     if (signer !== sender) {
       res.status(401).json('bad signature');
-      console.error(message, signer);
+      console.error(payload, signer, signature);
       return;
     }
     if (typeof assessment !== 'object') {

@@ -9,7 +9,9 @@
     "url": "git+https://github.com/coinosis/owl.git"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js",
+    "start:dev": "mongod --dbpath=devdb & nodemon server.js",
+    "test": "./test.sh"
   },
   "author": "@e18r",
   "license": "GPL-3.0-or-later",

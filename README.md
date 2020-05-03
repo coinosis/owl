@@ -16,17 +16,16 @@ npm i
 
 ```bash
 
-mkdir testdb
-mongod --dbpath=devdb
+mkdir devdb
 npm i -g nodemon
-nodemon index.js
+npm run start:dev
 
 ```
 
 ## Submit your changes
 
 1. Add the relevant tests in `test.js`
-2. Make sure all tests run smoothly: `./test.sh`
+2. Make sure all tests run smoothly: `npm test`
 3. Commit & push to the `test` branch
 4. Check everything is working in [the test deployment](https://coinosis-test.herokuapp.com)
 5. Create a pull request targeting the `master` branch
@@ -36,12 +35,11 @@ nodemon index.js
 
 ```bash
 
-mongo
-use coinosis
-users = db.getCollection('users')
-assessments = db.getCollection('assessments')
-users.find()
-assessments.find()
+$ mongo coinosis
+> users = db.getCollection('users')
+> assessments = db.getCollection('assessments')
+> users.find()
+> assessments.find()
 
 ```
 
@@ -58,7 +56,7 @@ first, [install the heroku cli tool](https://devcenter.heroku.com/articles/herok
 ```bash
 
 scripts/prod2test.sh
-mongod --dbpath=devdb
+npm run start:dev
 scripts/test2dev.sh
 
 ```

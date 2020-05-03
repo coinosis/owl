@@ -1,6 +1,7 @@
 ## prerequisites
 
 * [mongodb](https://docs.mongodb.com/manual/administration/install-community/)
+* [heroku CLI](https://devcenter.heroku.com/articles/heroku-cli#download-and-install)
 
 ## install on a dev environment
 
@@ -53,8 +54,6 @@ $ mongo coinosis
 5. `scripts/initialize.sh`
 
 ## migrate data from production
-
-first, [install the heroku cli tool](https://devcenter.heroku.com/articles/heroku-cli#download-and-install)
 
 ```bash
 

@@ -1,1 +1,1 @@
-db.users.createIndex({address: 1});
+db.users.createIndex({address: 1}, {unique: true});

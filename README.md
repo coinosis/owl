@@ -9,6 +9,7 @@
 git clone https://github.com/coinosis/owl -b test
 cd owl
 npm i
+scripts/initialize.sh
 
 ```
 
@@ -48,6 +49,8 @@ $ mongo coinosis
 1. create a heroku account
 2. install the mongolab add-on
 3. deploy the code
+4. `MONGODB_URI=$(heroku config:get MONGODB_URI -a <your-database-name>)`
+5. `scripts/initialize.sh`
 
 ## migrate data from production
 

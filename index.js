@@ -2,6 +2,7 @@ const express = require('express');
 const Web3Utils = require('web3-utils');
 const MongoClient = require('mongodb').MongoClient;
 const cors = require('cors');
+const Web3EthAccounts = require('web3-eth-accounts');
 
 const port = process.env.PORT || 3000;
 const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017/coinosis';
@@ -10,6 +11,9 @@ const dateOptions = {
   dateStyle: 'medium',
   timeStyle: 'medium'
 };
+const infuraURI =
+      'wss://mainnet.infura.io/ws/v3/58a2b59a8caa4c2e9834f8c3dd228b06';
+const accounts = new Web3EthAccounts(infuraURI);
 
 const app = express();
 app.use(express.json());
@@ -39,7 +43,7 @@ dbClient.connect((error) => {
     const query = {address: req.params.address};
     const userFilter = await users.find(query).toArray();
     if (!userFilter.length) {
-      res.status(404).end();
+      res.status(404).json('user not found');
       return;
     }
     res.json(userFilter[0]);
@@ -47,16 +51,37 @@ dbClient.connect((error) => {
 
   app.post('/users', async (req, res) => {
     const params = Object.keys(req.body);
-    if (!params.includes('name') || !params.includes('address')) {
+    if (
+      !params.includes('name')
+        || !params.includes('address')
+        || !params.includes('signature')
+    ) {
       res.status(400).json('wrong param names');
       console.error(params);
       return;
     }
-    const name = req.body.name;
-    const address = req.body.address;
-    if (name === '' || !Web3Utils.isAddress(address)) {
+    const { name, address, signature } = req.body;
+    if (
+      name === ''
+        || !Web3Utils.isAddress(address)
+        || signature === ''
+    ) {
       res.status(400).json('wrong param formats');
-      console.error(name, address);
+      console.error(name, address, signature);
+      return;
+    }
+    const message = JSON.stringify({address, name});
+    let signer;
+    try {
+      signer = accounts.recover(message, signature);
+    } catch (err) {
+      res.status(400).json('malformed signature');
+      console.error(err.message);
+      return;
+    }
+    if (signer !== address) {
+      res.status(401).json('bad signature');
+      console.error(message, signer);
       return;
     }
     const nameCount = await users.countDocuments({name})
@@ -91,7 +116,7 @@ dbClient.connect((error) => {
     const query = {sender: req.params.sender};
     const assessmentFilter = await assessments.find(query).toArray();
     if (!assessmentFilter.length) {
-      res.status(404).end();
+      res.status(404).json('assessment not found');
       return;
     }
     res.json(assessmentFilter[0]);
@@ -99,18 +124,39 @@ dbClient.connect((error) => {
 
   app.post('/assessments', async (req, res) => {
     const params = Object.keys(req.body);
-    if (!params.includes('sender') || !params.includes('assessment')) {
+    if (
+      !params.includes('sender')
+        || !params.includes('assessment')
+        || !params.includes('signature')
+    ) {
       res.status(400).json('wrong param names');
       console.error(params);
       return;
     }
-    const sender = req.body.sender;
+    const { sender, assessment, signature } = req.body;
     if (!Web3Utils.isAddress(sender)) {
       res.status(400).json('sender is not an address');
       console.error(sender);
       return;
     }
-    const assessment = req.body.assessment;
+    if (signature === '') {
+      res.status(400).json('empty signature');
+      return;
+    }
+    const message = JSON.stringify({sender, assessment});
+    let signer;
+    try {
+      signer = accounts.recover(message, signature);
+    } catch (err) {
+      res.status(400).json('malformed signature');
+      console.error(err.message);
+      return;
+    }
+    if (signer !== sender) {
+      res.status(401).json('bad signature');
+      console.error(message, signer);
+      return;
+    }
     if (typeof assessment !== 'object') {
       res.status(400).json('assessment is not an object');
       console.error(assessment);

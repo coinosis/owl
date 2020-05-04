@@ -1,5 +1,4 @@
 const express = require('express');
-const Web3Utils = require('web3-utils');
 const MongoClient = require('mongodb').MongoClient;
 const cors = require('cors');
 const Web3EthAccounts = require('web3-eth-accounts');
@@ -29,6 +28,7 @@ dbClient.connect((error) => {
   }
   const db = dbClient.db();
   const users = db.collection('users');
+  const events = db.collection('events');
   const assessments = db.collection('assessments');
 
   app.get('/', (req, res) => {
@@ -64,7 +64,7 @@ dbClient.connect((error) => {
     const { name, address, signature } = req.body;
     if (
       name === ''
-        || !Web3Utils.isAddress(address)
+        || !utils.isAddress(address)
         || signature === ''
     ) {
       res.status(400).json('wrong param formats');
@@ -86,7 +86,7 @@ dbClient.connect((error) => {
       console.error(payload, signer, signature);
       return;
     }
-    const nameCount = await users.countDocuments({name})
+    const nameCount = await users.countDocuments({name});
     if (nameCount > 0) {
       res.status(400).json('name exists');
       console.error(nameCount);
@@ -101,6 +101,109 @@ dbClient.connect((error) => {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const date = new Date().toLocaleString('es-CO', dateOptions);
     const effect = await users.insertOne({name, address, date, ip, signature});
+    if (effect.result.ok && effect.ops.length) {
+      res.status(201).json(effect.ops[0]);
+    } else {
+      res.status(500).end();
+      console.error(effect);
+    }
+  });
+
+  app.post('/events', async (req, res) => {
+    const params = Object.keys(req.body);
+    const expectedParams = [
+      'name',
+      'description',
+      'fee',
+      'start',
+      'end',
+      'organizer',
+      'signature',
+    ];
+    if(!expectedParams.every(param => params.includes(param))) {
+      res.status(400).json('wrong param names');
+      console.error(params);
+      return;
+    }
+    const {
+      name,
+      description,
+      fee,
+      start,
+      end,
+      organizer,
+      signature
+    } = req.body;
+    if (
+      name === ''
+        || description === ''
+        || isNaN(Number(fee))
+        || isNaN(new Date(start).getTime())
+        || isNaN(new Date(end).getTime())
+        || !utils.isAddress(organizer)
+        || signature === ''
+    ) {
+      res.status(400).json('wrong param values');
+      console.error(name, description, start, end, organizer, signature);
+      return;
+    }
+    const object = { name, description, fee, start, end, organizer };
+    const payload = JSON.stringify(object);
+    const hex = utils.utf8ToHex(payload);
+    let signer;
+    try {
+      signer = accounts.recover(hex, signature);
+    } catch (err) {
+      res.status(401).json('malformed signature');
+      console.error(object, signature);
+      return;
+    }
+    if (signer !== organizer) {
+      res.status(401).json('wrong signature');
+      console.error(organizer, signer);
+      return;
+    }
+    const eventCount = await events.countDocuments({name});
+    if (eventCount !== 0) {
+      res.status(400).json('event name already exists');
+      console.error(eventCount, name);
+      return;
+    }
+    const feeAmount = Number(fee);
+    if (feeAmount < 0 || feeAmount === Infinity) {
+      res.status(400).json('invalid fee');
+      console.error(feeAmount);
+      return;
+    }
+    const creationDate = new Date();
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    if (endDate <= startDate || creationDate > startDate) {
+      res.status(400).json('invalid date values');
+      console.error(startDate, endDate);
+      return;
+    }
+    const userCount = await users.countDocuments({address: organizer});
+    if (userCount === 0) {
+      res.status(400).json('organizer unregistered');
+      console.error(organizer);
+      return;
+    }
+    const attendees = [ organizer ];
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const event = {
+      name,
+      description,
+      fee: feeAmount,
+      start: startDate,
+      end: endDate,
+      organizer,
+      signature,
+      attendees,
+      creation: creationDate,
+      ip,
+    }
+    const effect = await events.insertOne(event);
     if (effect.result.ok && effect.ops.length) {
       res.status(201).json(effect.ops[0]);
     } else {
@@ -136,7 +239,7 @@ dbClient.connect((error) => {
       return;
     }
     const { sender, assessment, signature } = req.body;
-    if (!Web3Utils.isAddress(sender)) {
+    if (!utils.isAddress(sender)) {
       res.status(400).json('sender is not an address');
       console.error(sender);
       return;
@@ -167,7 +270,7 @@ dbClient.connect((error) => {
     }
     const addresses = Object.keys(assessment);
     for (const i in addresses) {
-      if (!Web3Utils.isAddress(addresses[i])) {
+      if (!utils.isAddress(addresses[i])) {
         res.status(400).json('this is not an address');
         console.error(addresses[i]);
         return;
@@ -227,8 +330,8 @@ dbClient.connect((error) => {
     if (effect.result.ok && effect.ops.length) {
       res.status(201).json(effect.ops[0]);
     } else {
-      console.log(effect);
       res.status(500).end();
+      console.error(effect);
     }
   });
 });

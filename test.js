@@ -183,6 +183,7 @@ describe('GET /users', () => {
 
 const event = {
   name: 'Hack The Box Meetup: Colombia Sesión 2 (Virtual)',
+  url: 'hack-the-box-meetup-colombia-sesion-2-virtual',
   description: `Cualquier persona interesada en comenzar y aprender sobre Hack The Box, hacking y pentesting es bienvenida a unirse al grupo. Compartimos conocimientos y hackeamos juntos.
 
 En esta segunda sesión, realizaremos la explotación paso a paso de una máquina retirada de dificultad media, donde se aprenderemos sobre la técnica de inyección SQL y binarios setuid/setgid.
@@ -240,7 +241,7 @@ describe('POST /events', () => {
     assert.equal(response.status, 400);
   });
   it('fails due to malformed signature', async () => {
-    const signedObject = {...event, signature: 'hola'};
+    const signedObject = {...event, signature: '0xaef03423'};
     const options = {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -259,7 +260,7 @@ describe('POST /events', () => {
     }
     const response = await fetch(`${url}/events`, options);
     assert.isNotOk(response.ok);
-    assert.equal(response.status, 401);
+    assert.equal(response.status, 400);
   });
   it('fails due to empty signature', async () => {
     const signedObject = { ...event, signature: '' };

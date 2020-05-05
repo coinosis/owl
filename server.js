@@ -118,6 +118,7 @@ dbClient.connect((error) => {
     const params = Object.keys(req.body);
     const expectedParams = [
       'name',
+      'url',
       'description',
       'fee',
       'start',
@@ -132,27 +133,29 @@ dbClient.connect((error) => {
     }
     const {
       name,
+      url,
       description,
       fee,
       start,
       end,
       organizer,
-      signature
+      signature,
     } = req.body;
     if (
       name === ''
+        || !/^[a-zA-Z0-9-]+$/.test(url)
         || description === ''
         || isNaN(Number(fee))
         || isNaN(new Date(start).getTime())
         || isNaN(new Date(end).getTime())
         || !utils.isAddress(organizer)
-        || signature === ''
+        || !/^0x[0-9a-f]+$/.test(signature)
     ) {
       res.status(400).json('wrong param values');
       console.error(name, description, start, end, organizer, signature);
       return;
     }
-    const object = { name, description, fee, start, end, organizer };
+    const object = { name, url, description, fee, start, end, organizer };
     const payload = JSON.stringify(object);
     const hex = utils.utf8ToHex(payload);
     let signer;
@@ -168,10 +171,16 @@ dbClient.connect((error) => {
       console.error(organizer, signer);
       return;
     }
-    const eventCount = await events.countDocuments({name});
-    if (eventCount !== 0) {
+    const nameCount = await events.countDocuments({name});
+    if (nameCount !== 0) {
       res.status(400).json('event name already exists');
-      console.error(eventCount, name);
+      console.error(nameCount, name);
+      return;
+    }
+    const urlCount = await events.countDocuments({url});
+    if (urlCount !== 0) {
+      res.status(400).json('event url already exists');
+      console.error(urlCount, name);
       return;
     }
     const feeAmount = Number(fee);
@@ -198,6 +207,7 @@ dbClient.connect((error) => {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const event = {
       name,
+      url,
       description,
       fee: feeAmount,
       start: startDate,

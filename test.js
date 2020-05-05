@@ -181,11 +181,9 @@ describe('GET /users', () => {
   });
 });
 
-describe('POST /events', () => {
-
-  const event = {
-    name: 'Hack The Box Meetup: Colombia Sesión 2 (Virtual)',
-    description: `Cualquier persona interesada en comenzar y aprender sobre Hack The Box, hacking y pentesting es bienvenida a unirse al grupo. Compartimos conocimientos y hackeamos juntos.
+const event = {
+  name: 'Hack The Box Meetup: Colombia Sesión 2 (Virtual)',
+  description: `Cualquier persona interesada en comenzar y aprender sobre Hack The Box, hacking y pentesting es bienvenida a unirse al grupo. Compartimos conocimientos y hackeamos juntos.
 
 En esta segunda sesión, realizaremos la explotación paso a paso de una máquina retirada de dificultad media, donde se aprenderemos sobre la técnica de inyección SQL y binarios setuid/setgid.
 
@@ -195,32 +193,34 @@ VirtualBox (https://www.virtualbox.org/wiki/Downloads)
 Kali LInux (https://www.kali.org/downloads/).
 
 NOTA: hemos visto la encuesta y estaremos mejorando basados en la informacion proporcionada. Nos estaremos adaptando y esperamos brindarles una mayor calidad en las charlas. Es por eso que les pedimos comprension para el desarrollo; por lo tanto, pondremos la charla inicialmente de 2 horas y si vemos la necesidad la extendemos un poco más.`,
-    fee: 4.65,
-    start: new Date('2020-05-12T19:00:00-05:00'),
-    end: new Date('2020-05-12T21:00:00-05:00'),
-    organizer: address,
-  };
+  fee: 4.65,
+  start: new Date('2020-05-12T19:00:00-05:00'),
+  end: new Date('2020-05-12T21:00:00-05:00'),
+  organizer: address,
+};
 
-  const verifyEvent = data => {
-    assert.ok(Object.keys(event).every(field => field in data));
-    const dateFields = ['start', 'end'];
-    for (const field in event) {
-      if (dateFields.includes(field)) {
-        assert.equal(new Date(data[field]).getTime(), event[field].getTime());
-      }
-      else {
-        assert.equal(data[field], event[field]);
-      }
+const verifyEvent = data => {
+  assert.ok(Object.keys(event).every(field => field in data));
+  const dateFields = ['start', 'end'];
+  for (const field in event) {
+    if (dateFields.includes(field)) {
+      assert.equal(new Date(data[field]).getTime(), event[field].getTime());
     }
-    const newFields = ['signature', 'attendees', 'creation', 'ip'];
-    assert.ok(newFields.every(field => field in data));
-    assert.equal(data.attendees[0], address);
-    assert.closeTo(
-      new Date(data.creation).getTime(),
-      new Date().getTime(),
-      10000
-    );
+    else {
+      assert.equal(data[field], event[field]);
+    }
   }
+  const newFields = ['signature', 'attendees', 'creation', 'ip'];
+  assert.ok(newFields.every(field => field in data));
+  assert.equal(data.attendees[0], address);
+  assert.closeTo(
+    new Date(data.creation).getTime(),
+    new Date().getTime(),
+    10000
+  );
+}
+
+describe('POST /events', () => {
 
   it('succeeds', async () => {
     const response = await post('events', event, privateKey);
@@ -271,6 +271,16 @@ NOTA: hemos visto la encuesta y estaremos mejorando basados en la informacion pr
     const response = await fetch(`${url}/events`, options);
     assert.isNotOk(response.ok);
     assert.equal(response.status, 400);
+  });
+});
+
+describe('GET /events', () => {
+  it('succeeds', async () => {
+    const response = await fetch(`${url}/events`);
+    assert.ok(response.ok, response.status);
+    const data = await response.json();
+    assert.equal(1, data.length);
+    verifyEvent(data[0]);
   });
 });
 

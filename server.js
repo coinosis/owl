@@ -109,6 +109,11 @@ dbClient.connect((error) => {
     }
   });
 
+  app.get('/events', async (req, res) => {
+    const eventList = await events.find().toArray();
+    res.json(eventList);
+  });
+
   app.post('/events', async (req, res) => {
     const params = Object.keys(req.body);
     const expectedParams = [

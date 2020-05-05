@@ -285,6 +285,15 @@ describe('GET /events', () => {
   });
 });
 
+describe('GET /event/:eventURL', () => {
+  it('succeeds', async () => {
+    const response = await fetch(`${url}/event/${event.url}`);
+    assert.ok(response.ok, response.status);
+    const data = await response.json();
+    verifyEvent(data);
+  });
+});
+
 describe('POST /assessments', () => {
   const assessment = {
     [users[0].address]: claps[0],

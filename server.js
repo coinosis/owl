@@ -114,6 +114,16 @@ dbClient.connect((error) => {
     res.json(eventList);
   });
 
+  app.get('/event/:url([a-z0-9-]{1,60})', async (req, res) => {
+    const { url } = req.params;
+    const eventFilter = await events.find({url}).toArray();
+    if (!eventFilter.length) {
+      res.status(404).json('event not found');
+      return;
+    }
+    res.json(eventFilter[0]);
+  });
+
   app.post('/events', async (req, res) => {
     const params = Object.keys(req.body);
     const expectedParams = [
@@ -143,7 +153,7 @@ dbClient.connect((error) => {
     } = req.body;
     if (
       name === ''
-        || !/^[a-zA-Z0-9-]+$/.test(url)
+        || !/^[a-z0-9-]{1,60}$/.test(url)
         || description === ''
         || isNaN(Number(fee))
         || isNaN(new Date(start).getTime())

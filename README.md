@@ -50,8 +50,7 @@ $ mongo coinosis
 1. create a heroku account
 2. install the mongolab add-on
 3. deploy the code
-4. `MONGODB_URI=$(heroku config:get MONGODB_URI -a <your-database-name>)`
-5. `scripts/initialize.sh`
+4. `scripts/initialize.sh <your-heroku-app-name>`
 
 ## migrate data from production
 

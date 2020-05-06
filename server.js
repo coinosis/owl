@@ -124,6 +124,20 @@ dbClient.connect((error) => {
     res.json(eventFilter[0]);
   });
 
+  app.get('/event/:url([a-z0-9-]{1,60})/attendees', async (req, res) => {
+    const { url } = req.params;
+    const eventFilter = await events.find({url}).toArray();
+    if (!eventFilter.length) {
+      res.status(404).json('event not found');
+      return;
+    }
+    const attendeeAddresses = eventFilter[0].attendees;
+    const userFilter = await users
+          .find({address: { $in: attendeeAddresses}})
+          .toArray();
+    res.json(userFilter);
+  });
+
   app.post('/events', async (req, res) => {
     const params = Object.keys(req.body);
     const expectedParams = [

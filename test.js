@@ -272,6 +272,20 @@ describe('GET /event/:eventURL', () => {
   });
 });
 
+describe('GET /event/:eventURL/attendees', () => {
+  it('succeeds', async () => {
+    const response = await fetch(`${url}/event/${event.url}/attendees`);
+    assert.ok(response.ok, response.status);
+    const data = await response.json();
+    const expectedAddresses = [ address, ...users.map(user => user.address) ];
+    const expectedNames = [ name, ...users.map(user => user.name) ];
+    for (const i in data) {
+      assert.ok(expectedAddresses.includes(data[i].address));
+      assert.ok(expectedNames.includes(data[i].name));
+    }
+  });
+});
+
 describe('POST /attend', () => {
 
   const object = { attendee: users[0].address, event: event.url };

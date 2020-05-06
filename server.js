@@ -307,25 +307,42 @@ dbClient.connect((error) => {
     res.end();
   });
 
-  app.get('/assessments', async (req, res) => {
-    const assessmentList = await assessments.find().toArray();
-    res.json(assessmentList);
-  });
-
-  app.get('/assessment/:sender(0x[a-fA-F0-9]{40})', async (req, res) => {
-    const query = {sender: req.params.sender};
-    const assessmentFilter = await assessments.find(query).toArray();
-    if (!assessmentFilter.length) {
-      res.status(404).json('assessment not found');
+  app.get('/assessments/:event([a-z0-9-]{1,60})', async (req, res) => {
+    const { event } = req.params;
+    const eventCount = await events.countDocuments({ url: event });
+    if (eventCount === 0) {
+      res.status(404).json('event not found');
       return;
     }
-    res.json(assessmentFilter[0]);
+    const assessmentFilter = await assessments.find({ event }).toArray();
+    res.json(assessmentFilter);
   });
+
+  app.get(
+    '/assessment/:event([a-z0-9-]{1,60})/:sender(0x[a-fA-F0-9]{40})',
+    async (req, res) => {
+      const { event, sender } = req.params;
+      const eventCount = await events.countDocuments({ url: event });
+      if (eventCount === 0) {
+        res.status(404).json('event not found');
+        return;
+      }
+      const assessmentFilter = await assessments
+            .find({ event, sender })
+            .toArray();
+      if (!assessmentFilter.length) {
+        res.status(404).json('assessment not found');
+        return;
+      }
+      res.json(assessmentFilter[0]);
+    }
+  );
 
   app.post('/assessments', async (req, res) => {
     const params = Object.keys(req.body);
     if (
-      !params.includes('sender')
+      !params.includes('event')
+        || !params.includes('sender')
         || !params.includes('assessment')
         || !params.includes('signature')
     ) {
@@ -333,34 +350,48 @@ dbClient.connect((error) => {
       console.error(params);
       return;
     }
-    const { sender, assessment, signature } = req.body;
-    if (!utils.isAddress(sender)) {
-      res.status(400).json('sender is not an address');
-      console.error(sender);
+    const { event, sender, assessment, signature } = req.body;
+    if (
+      !/^[a-z0-9-]{1,60}$/.test(event)
+        || !utils.isAddress(sender)
+        || typeof assessment !== 'object'
+        || !/^0x[0-9a-f]+$/.test(signature)
+    ) {
+      res.status(400).json('wrong param values');
+      console.error(event, sender, signature);
       return;
     }
-    if (signature === '') {
-      res.status(400).json('empty signature');
-      return;
-    }
-    const payload = JSON.stringify({sender, assessment});
+    const payload = JSON.stringify({event, sender, assessment});
     const hex = utils.utf8ToHex(payload);
     let signer;
     try {
       signer = accounts.recover(hex, signature);
     } catch (err) {
-      res.status(400).json('malformed signature');
+      res.status(401).json('malformed signature');
       console.error(err.message);
       return;
     }
     if (signer !== sender) {
       res.status(401).json('bad signature');
-      console.error(payload, signer, signature);
+      console.error(payload, signer, sender);
       return;
     }
-    if (typeof assessment !== 'object') {
-      res.status(400).json('assessment is not an object');
-      console.error(assessment);
+    const assessmentCount = await assessments.countDocuments({sender, event});
+    if (assessmentCount > 0) {
+      res.status(400).json('assessment already exists');
+      console.error(assessmentCount)
+      return;
+    }
+    const eventFilter = await events.find({url: event}).toArray();
+    if (eventFilter.length === 0) {
+      res.status(404).json('event not found');
+      console.error(event);
+      return;
+    }
+    const eventObject = eventFilter[0];
+    if (!eventObject.attendees.includes(sender)) {
+      res.status(400).json('sender not attending event');
+      console.error(eventObject.attendees, sender);
       return;
     }
     const addresses = Object.keys(assessment);
@@ -370,26 +401,20 @@ dbClient.connect((error) => {
         console.error(addresses[i]);
         return;
       }
-    }
-    for (const i in addresses) {
       if (addresses[i] === sender) {
         res.status(400).json('sender can\'t assess themselves');
         console.error(addresses[i]);
         return;
       }
-    }
-    for (const i in addresses) {
-      const userFilter = await users.find({address: addresses[i]}).toArray();
-      if (userFilter.length < 1) {
-        res.status(400).json('address not registered');
-        console.error(addresses[i]);
+      if (!eventObject.attendees.includes(addresses[i])) {
+        res.status(400).json('address not attending');
+        console.error(eventObject.attendees, addresses[i]);
         return;
       }
     }
     const claps = Object.values(assessment);
     let totalClaps = 0;
     for (const i in claps) {
-      totalClaps += claps[i];
       if (
         isNaN(claps[i])
           || claps[i] < 0
@@ -399,23 +424,11 @@ dbClient.connect((error) => {
         console.error(claps[i]);
         return;
       }
+      totalClaps += claps[i];
     }
-    const userList = await users.find().toArray();
-    if (totalClaps > (userList.length - 1) * 3) {
+    if (totalClaps > (eventObject.attendees.length - 1) * 3) {
       res.status(400).json('maximum number of claps exceeded');
       console.error(totalClaps);
-      return;
-    }
-    const userFilter = await users.find({address: sender}).toArray();
-    if (userFilter.length < 1) {
-      res.status(400).json('sender not registered');
-      console.error(userList.map(user => user.address));
-      return;
-    }
-    const assessmentFilter = await assessments.find({sender}).toArray();
-    if (assessmentFilter.length > 0) {
-      res.status(400).json('assessment already exists');
-      console.error(assessmentFilter)
       return;
     }
     const object = req.body;

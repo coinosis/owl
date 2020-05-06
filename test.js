@@ -63,28 +63,6 @@ const post = async (endpoint, object, privateKey) => {
   return fetch(`${url}/${endpoint}`, options);
 }
 
-const verifyAssessment = (data, date) => {
-  assert.ok(
-    'sender' in data
-      && 'assessment' in data
-      && 'date' in data
-      && 'ip' in data
-      && 'signature' in data
-  );
-  assert.equal(address, data.sender);
-  assert.closeTo(new Date(data.date).getTime(), date.getTime(), 10000);
-  assert.ok(
-    users[0].address in data.assessment
-      && users[1].address in data.assessment
-      && users[2].address in data.assessment
-  );
-  assert.ok(
-    data.assessment[users[0].address] === claps[0]
-      && data.assessment[users[1].address] === claps[1]
-      && data.assessment[users[2].address] === claps[2]
-  );
-}
-
 describe('GET /', () => {
   it('version is correct', async () => {
     const response = await fetch(`${url}/`);
@@ -303,16 +281,53 @@ describe('POST /attend', () => {
     assert.ok(response.ok);
     const data = await response.json();
     assert.ok(data.attendees.includes(users[0].address));
+    await post(
+      'attend',
+      { attendee: users[1].address, event: event.url },
+      privateKeys[1]
+    );
+    await post(
+      'attend',
+      { attendee: users[2].address, event: event.url },
+      privateKeys[2]
+    );
   });
 });
 
+const verifyAssessment = (data, date) => {
+  assert.ok(
+    'event' in data
+      && 'sender' in data
+      && 'assessment' in data
+      && 'date' in data
+      && 'ip' in data
+      && 'signature' in data
+  );
+  assert.equal(event.url, data.event);
+  assert.equal(address, data.sender);
+  assert.closeTo(new Date(data.date).getTime(), date.getTime(), 10000);
+  assert.ok(
+    users[0].address in data.assessment
+      && users[1].address in data.assessment
+      && users[2].address in data.assessment
+  );
+  assert.ok(
+    data.assessment[users[0].address] === claps[0]
+      && data.assessment[users[1].address] === claps[1]
+      && data.assessment[users[2].address] === claps[2]
+  );
+}
+
 describe('POST /assessments', () => {
+
   const assessment = {
     [users[0].address]: claps[0],
     [users[1].address]: claps[1],
     [users[2].address]: claps[2],
   };
-  const object = {sender: address, assessment};
+
+  const object = {event: event.url, sender: address, assessment};
+
   it('succeeds', async () => {
     const response = await post('assessments', object, privateKey);
     const date = new Date();
@@ -365,23 +380,23 @@ describe('POST /assessments', () => {
   });
 });
 
-describe('GET /assessment/:sender', () => {
+describe('GET /assessments/:event', () => {
   it('succeeds', async () => {
-    const response = await fetch(`${url}/assessment/${address}`);
-    const date = new Date();
-    assert.ok(response.ok, response.status);
-    const data = await response.json();
-    verifyAssessment(data, date);
-  });
-});
-
-describe('GET /assessments', () => {
-  it('succeeds', async () => {
-    const response = await fetch(`${url}/assessments`);
+    const response = await fetch(`${url}/assessments/${event.url}`);
     const date = new Date();
     assert.ok(response.ok, response.status);
     const data = await response.json();
     assert.equal(1, data.length);
     verifyAssessment(data[0], date);
+  });
+});
+
+describe('GET /assessment/:event/:sender', () => {
+  it('succeeds', async () => {
+    const response = await fetch(`${url}/assessment/${event.url}/${address}`);
+    const date = new Date();
+    assert.ok(response.ok, response.status);
+    const data = await response.json();
+    verifyAssessment(data, date);
   });
 });

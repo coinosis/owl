@@ -162,7 +162,7 @@ dbClient.connect((error) => {
         || !/^0x[0-9a-f]+$/.test(signature)
     ) {
       res.status(400).json('wrong param values');
-      console.error(name, description, start, end, organizer, signature);
+      console.error(req.body);
       return;
     }
     const object = { name, url, description, fee, start, end, organizer };
@@ -235,6 +235,76 @@ dbClient.connect((error) => {
       res.status(500).end();
       console.error(effect);
     }
+  });
+
+  app.post('/attend', async (req, res) => {
+    const params = Object.keys(req.body);
+    if (
+      !params.includes('attendee')
+        || !params.includes('event')
+        || !params.includes('signature')
+    ) {
+      res.status(400).json('wrong param names');
+      console.error(params);
+      return;
+    }
+    const { attendee, event, signature } = req.body;
+    if (
+      !utils.isAddress(attendee)
+        || event === ''
+        || !/^0x[0-9a-f]+$/.test(signature)
+    ) {
+      res.status(400).json('wrong param values');
+      console.error(req.body);
+    }
+    const object = { attendee, event };
+    const payload = JSON.stringify(object);
+    const hex = utils.utf8ToHex(payload);
+    let signer;
+    try {
+      signer = accounts.recover(hex, signature);
+    } catch (err) {
+      res.status(401).json('malformed signature');
+      console.error(object, signature);
+      return;
+    }
+    if (signer !== attendee) {
+      res.status(401).json('wrong signature');
+      console.error(attendee, signer);
+      return;
+    }
+    const attendeeCount = await users.countDocuments({address: attendee});
+    if (attendeeCount === 0) {
+      res.status(400).json('attendee unregistered');
+      console.error(attendee);
+      return;
+    }
+    const eventFilter = await events.find({url: event}).toArray();
+    if (eventFilter.length === 0) {
+      res.status(400).json('this event doesn\'t exist');
+      console.error(event);
+      return;
+    }
+    const eventObject = eventFilter[0];
+    const now = new Date();
+    if (now > eventObject.end) {
+      res.status(400).json('the event already finished');
+      console.error(eventObject);
+      return;
+    }
+    if (!eventObject.attendees.includes(attendee)) {
+      eventObject.attendees.push(attendee);
+      const effect = await events.replaceOne({url: event}, eventObject);
+      if (effect.result.ok && effect.ops.length) {
+        res.status(201).json(effect.ops[0]);
+        return;
+      } else {
+        res.status(500).end();
+        console.error(effect);
+        return;
+      }
+    }
+    res.end();
   });
 
   app.get('/assessments', async (req, res) => {

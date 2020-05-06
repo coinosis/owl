@@ -294,6 +294,18 @@ describe('GET /event/:eventURL', () => {
   });
 });
 
+describe('POST /attend', () => {
+
+  const object = { attendee: users[0].address, event: event.url };
+
+  it('succeds', async () => {
+    const response = await post('attend', object, privateKeys[0]);
+    assert.ok(response.ok);
+    const data = await response.json();
+    assert.ok(data.attendees.includes(users[0].address));
+  });
+});
+
 describe('POST /assessments', () => {
   const assessment = {
     [users[0].address]: claps[0],

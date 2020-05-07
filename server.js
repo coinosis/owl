@@ -216,11 +216,11 @@ dbClient.connect((error) => {
     const creationDate = new Date();
     const startDate = new Date(start);
     const endDate = new Date(end);
-    if (endDate <= startDate || creationDate > startDate) {
-      res.status(400).json('invalid date values');
-      console.error(startDate, endDate);
-      return;
-    }
+    // if (endDate <= startDate || creationDate > startDate) {
+    //   res.status(400).json('invalid date values');
+    //   console.error(startDate, endDate);
+    //   return;
+    // }
     const userCount = await users.countDocuments({address: organizer});
     if (userCount === 0) {
       res.status(400).json('organizer unregistered');

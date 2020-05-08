@@ -18,7 +18,7 @@ scripts/initialize.sh
 
 ```bash
 
-mkdir devdb
+mkdir db
 npm i -g nodemon
 npm run start:dev
 

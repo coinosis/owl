@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "node server.js",
-    "start:dev": "mongod --dbpath=devdb & nodemon server.js",
+    "start:dev": "mongod --dbpath=db & nodemon server.js",
     "test": "./test.sh"
   },
   "author": "@e18r",

@@ -135,7 +135,8 @@ dbClient.connect((error) => {
     const userFilter = await users
           .find({address: { $in: attendeeAddresses}})
           .toArray();
-    res.json(userFilter);
+    const sortedUsers = userFilter.sort((a, b) => a.name.localeCompare(b.name));
+    res.json(sortedUsers);
   });
 
   app.post('/events', async (req, res) => {

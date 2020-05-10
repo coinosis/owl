@@ -272,25 +272,11 @@ describe('GET /event/:eventURL', () => {
   });
 });
 
-describe('GET /event/:eventURL/attendees', () => {
-  it('succeeds', async () => {
-    const response = await fetch(`${url}/event/${event.url}/attendees`);
-    assert.ok(response.ok, response.status);
-    const data = await response.json();
-    const expectedAddresses = [ address, ...users.map(user => user.address) ];
-    const expectedNames = [ name, ...users.map(user => user.name) ];
-    for (const i in data) {
-      assert.ok(expectedAddresses.includes(data[i].address));
-      assert.ok(expectedNames.includes(data[i].name));
-    }
-  });
-});
-
 describe('POST /attend', () => {
 
   const object = { attendee: users[0].address, event: event.url };
 
-  it('succeds', async () => {
+  it('succeeds', async () => {
     const response = await post('attend', object, privateKeys[0]);
     assert.ok(response.ok);
     await post(
@@ -303,6 +289,18 @@ describe('POST /attend', () => {
       { attendee: users[2].address, event: event.url },
       privateKeys[2]
     );
+  });
+});
+
+describe('GET /event/:eventURL/attendees', () => {
+  it('succeeds, respects order', async () => {
+    const response = await fetch(`${url}/event/${event.url}/attendees`);
+    assert.ok(response.ok, response.status);
+    const data = await response.json();
+    assert.equal(data[0].name, users[1].name);
+    assert.equal(data[1].name, users[0].name);
+    assert.equal(data[2].name, users[2].name);
+    assert.equal(data[3].name, name);
   });
 });
 

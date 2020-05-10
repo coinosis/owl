@@ -293,8 +293,6 @@ describe('POST /attend', () => {
   it('succeds', async () => {
     const response = await post('attend', object, privateKeys[0]);
     assert.ok(response.ok);
-    const data = await response.json();
-    assert.ok(data.attendees.includes(users[0].address));
     await post(
       'attend',
       { attendee: users[1].address, event: event.url },

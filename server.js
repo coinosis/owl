@@ -308,9 +308,11 @@ dbClient.connect((error) => {
     }
     if (!eventObject.attendees.includes(attendee)) {
       eventObject.attendees.push(attendee);
-      const effect = await events.replaceOne({url: event}, eventObject);
-      if (effect.result.ok && effect.ops.length) {
-        res.status(201).json(effect.ops[0]);
+      const effect = await events.updateOne({url: event}, {
+        $push: {attendees: attendee}
+      });
+      if (effect.result.ok && effect.modifiedCount === 1) {
+        res.status(201).json();
         return;
       } else {
         res.status(500).end();

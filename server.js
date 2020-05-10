@@ -312,7 +312,7 @@ dbClient.connect((error) => {
         $push: {attendees: attendee}
       });
       if (effect.result.ok && effect.modifiedCount === 1) {
-        res.status(201).json();
+        res.status(201).json('');
         return;
       } else {
         res.status(500).end();

@@ -173,14 +173,16 @@ Kali LInux (https://www.kali.org/downloads/).
 
 NOTA: hemos visto la encuesta y estaremos mejorando basados en la informacion proporcionada. Nos estaremos adaptando y esperamos brindarles una mayor calidad en las charlas. Es por eso que les pedimos comprension para el desarrollo; por lo tanto, pondremos la charla inicialmente de 2 horas y si vemos la necesidad la extendemos un poco más.`,
   fee: 4.65,
-  start: new Date('2020-05-12T19:00:00-05:00'),
-  end: new Date('2020-05-12T21:00:00-05:00'),
+  start: new Date('2021-05-12T19:00:00-05:00'),
+  end: new Date('2021-05-12T21:00:00-05:00'),
+  beforeStart: new Date('2021-05-12T18:50:00-05:00'),
+  afterEnd: new Date('2021-05-12T21:30:00-05:00'),
   organizer: address,
 };
 
 const verifyEvent = data => {
   assert.ok(Object.keys(event).every(field => field in data));
-  const dateFields = ['start', 'end'];
+  const dateFields = ['start', 'end', 'beforeStart', 'afterEnd'];
   for (const field in event) {
     if (dateFields.includes(field)) {
       assert.equal(new Date(data[field]).getTime(), event[field].getTime());

@@ -148,6 +148,8 @@ dbClient.connect((error) => {
       'fee',
       'start',
       'end',
+      'beforeStart',
+      'afterEnd',
       'organizer',
       'signature',
     ];
@@ -163,6 +165,8 @@ dbClient.connect((error) => {
       fee,
       start,
       end,
+      beforeStart,
+      afterEnd,
       organizer,
       signature,
     } = req.body;
@@ -173,6 +177,8 @@ dbClient.connect((error) => {
         || isNaN(Number(fee))
         || isNaN(new Date(start).getTime())
         || isNaN(new Date(end).getTime())
+        || isNaN(new Date(beforeStart).getTime())
+        || isNaN(new Date(afterEnd).getTime())
         || !utils.isAddress(organizer)
         || !/^0x[0-9a-f]+$/.test(signature)
     ) {
@@ -180,7 +186,17 @@ dbClient.connect((error) => {
       console.error(req.body);
       return;
     }
-    const object = { name, url, description, fee, start, end, organizer };
+    const object = {
+      name,
+      url,
+      description,
+      fee,
+      start,
+      end,
+      beforeStart,
+      afterEnd,
+      organizer,
+    };
     const payload = JSON.stringify(object);
     const hex = utils.utf8ToHex(payload);
     let signer;
@@ -217,9 +233,16 @@ dbClient.connect((error) => {
     const creationDate = new Date();
     const startDate = new Date(start);
     const endDate = new Date(end);
-    if (endDate <= startDate || creationDate > startDate) {
+    const beforeStartDate = new Date(beforeStart);
+    const afterEndDate = new Date(afterEnd);
+    if (
+      creationDate > beforeStartDate
+        || beforeStartDate > startDate
+        || startDate >= endDate
+        || endDate >= afterEndDate
+    ) {
       res.status(400).json('invalid date values');
-      console.error(startDate, endDate);
+      console.error(beforeStartDate, startDate, endDate, afterEndDate);
       return;
     }
     const userCount = await users.countDocuments({address: organizer});
@@ -237,6 +260,8 @@ dbClient.connect((error) => {
       fee: feeAmount,
       start: startDate,
       end: endDate,
+      beforeStart: beforeStartDate,
+      afterEnd: afterEndDate,
       organizer,
       signature,
       attendees,

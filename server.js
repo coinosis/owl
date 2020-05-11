@@ -239,7 +239,7 @@ dbClient.connect((error) => {
       creationDate > beforeStartDate
         || beforeStartDate > startDate
         || startDate >= endDate
-        || endDate >= afterEndDate
+        || endDate > afterEndDate
     ) {
       res.status(400).json('invalid date values');
       console.error(beforeStartDate, startDate, endDate, afterEndDate);

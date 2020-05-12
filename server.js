@@ -327,7 +327,7 @@ dbClient.connect((error) => {
     }
     const eventObject = eventFilter[0];
     const now = new Date();
-    if (now > eventObject.end) {
+    if (now > eventObject.afterEnd) {
       res.status(400).json('the event already finished');
       console.error(eventObject);
       return;
@@ -473,10 +473,16 @@ dbClient.connect((error) => {
       console.error(totalClaps);
       return;
     }
+    const now = new Date();
+    if (now < eventObject.beforeStart) {
+      res.status(400).json('the event hasn\'t started');
+      console.error(eventObject);
+      return;
+    }
     const object = req.body;
-    object.date = new Date().toLocaleString('es-CO', dateOptions);
+    object.date = now;
     object.ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    const effect = await assessments.insertOne(req.body);
+    const effect = await assessments.insertOne(object);
     if (effect.result.ok && effect.ops.length) {
       res.status(201).json(effect.ops[0]);
     } else {

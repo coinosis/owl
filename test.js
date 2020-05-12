@@ -175,7 +175,7 @@ NOTA: hemos visto la encuesta y estaremos mejorando basados en la informacion pr
   fee: 4.65,
   start: new Date('2021-05-12T19:00:00-05:00'),
   end: new Date('2021-05-12T21:00:00-05:00'),
-  beforeStart: new Date('2021-05-12T18:50:00-05:00'),
+  beforeStart: new Date('2019-05-12T18:50:00-05:00'),
   afterEnd: new Date('2021-05-12T21:30:00-05:00'),
   organizer: address,
 };

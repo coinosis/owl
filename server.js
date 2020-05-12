@@ -236,7 +236,7 @@ dbClient.connect((error) => {
     const beforeStartDate = new Date(beforeStart);
     const afterEndDate = new Date(afterEnd);
     if (
-      creationDate > beforeStartDate
+      creationDate > startDate
         || beforeStartDate > startDate
         || startDate >= endDate
         || endDate > afterEndDate

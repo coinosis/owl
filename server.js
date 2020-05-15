@@ -35,6 +35,11 @@ dbClient.connect((error) => {
     res.json({version});
   });
 
+  app.post('/payu', (req, res) => {
+    console.log(req.body);
+    res.json(req.body);
+  });
+
   app.get('/users', async (req, res) => {
     const userList = await users.find().toArray();
     res.json(userList);

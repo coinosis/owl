@@ -37,7 +37,7 @@ dbClient.connect((error) => {
   });
 
   app.post('/payu', (req, res) => {
-    payments.insertOne(req.body);
+    payments.insertOne({...req.body, date: new Date()});
     res.json('');
   });
 

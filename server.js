@@ -30,14 +30,20 @@ dbClient.connect((error) => {
   const users = db.collection('users');
   const events = db.collection('events');
   const assessments = db.collection('assessments');
+  const payments = db.collection('payments');
 
   app.get('/', (req, res) => {
     res.json({version});
   });
 
   app.post('/payu', (req, res) => {
-    console.log(req.body);
-    res.json(req.body);
+    payments.insertOne(req.body);
+    res.json('');
+  });
+
+  app.get('/payu', async (req, res) => {
+    const all = await payments.find().toArray();
+    res.json(all);
   });
 
   app.get('/users', async (req, res) => {

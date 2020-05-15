@@ -17,6 +17,7 @@ const accounts = new Web3EthAccounts(infuraURI);
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded());
 app.use(cors());
 const dbClient = new MongoClient(dbUrl, { useUnifiedTopology: true });
 const version = '1.0.0';
@@ -37,7 +38,7 @@ dbClient.connect((error) => {
   });
 
   app.post('/payu', (req, res) => {
-    payments.insertOne({...req.body, date: new Date()});
+    payments.insertOne({body: req.body, metadata: {date: new Date(), ip: req.connection.remoteAddress}, headers: req.headers});
     res.json('');
   });
 

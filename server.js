@@ -39,13 +39,6 @@ dbClient.connect((error) => {
   });
 
   app.post('/payu', (req, res) => {
-    const body = req.body;
-    const result = {
-      referenceCode: body.reference_sale,
-      amount: body.value,
-      currency: body.currency,
-      response: body.response_message_pol,
-    };
     payments.insertOne({body: req.body, metadata: {date: new Date(), ip: req.connection.remoteAddress}, headers: req.headers});
     res.json('');
   });
@@ -57,8 +50,12 @@ dbClient.connect((error) => {
 
   app.get('/payu/:referenceCode/push', async (req, res) => {
     const { referenceCode } = req.params;
-    const payment = await payments.findOne({ referenceCode });
-    res.json(payment);
+    const { body } = await payments.findOne({ referenceCode });
+    const result = {
+      referenceCode: body.reference_sale,
+      response: body.response_message_pol,
+    };
+    res.json(result);
   });
 
   app.get('/payu/:referenceCode/pull', async (req, res) => {
@@ -88,12 +85,7 @@ dbClient.connect((error) => {
         const transaction = payload.transactions[0];
         const result = {
           referenceCode: payload.referenceCode,
-          amount: transaction.additionalValues.TX_VALUE.value,
-          currency: transaction.additionalValues.TX_VALUE.currency,
-          code: data.code,
-          status: payload.status,
           response: transaction.transactionResponse.responseCode,
-          state: transaction.transactionResponse.state,
         };
         res.json(result);
       }).catch(err => {

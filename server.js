@@ -50,10 +50,10 @@ dbClient.connect((error) => {
 
   app.get('/payu/:referenceCode/push', async (req, res) => {
     const { referenceCode } = req.params;
-    const { body } = await payments.findOne({ referenceCode });
+    const payment = await payments.findOne({ 'body.reference_sale': referenceCode }, );
     const result = {
-      referenceCode: body.reference_sale,
-      response: body.response_message_pol,
+      referenceCode: payment.body.reference_sale,
+      response: payment.body.response_message_pol,
     };
     res.json(result);
   });

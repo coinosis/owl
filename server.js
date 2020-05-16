@@ -3,6 +3,7 @@ const MongoClient = require('mongodb').MongoClient;
 const cors = require('cors');
 const Web3EthAccounts = require('web3-eth-accounts');
 const utils = require('web3-utils');
+const fetch = require('node-fetch');
 
 const port = process.env.PORT || 3000;
 const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017/coinosis';
@@ -38,13 +39,66 @@ dbClient.connect((error) => {
   });
 
   app.post('/payu', (req, res) => {
+    const body = req.body;
+    const result = {
+      referenceCode: body.reference_sale,
+      amount: body.value,
+      currency: body.currency,
+      response: body.response_message_pol,
+    };
     payments.insertOne({body: req.body, metadata: {date: new Date(), ip: req.connection.remoteAddress}, headers: req.headers});
     res.json('');
   });
 
-  app.get('/payu', async (req, res) => {
+  app.get('/payu/all', async (req, res) => {
     const all = await payments.find().toArray();
     res.json(all);
+  });
+
+  app.get('/payu/:referenceCode/push', async (req, res) => {
+    const { referenceCode } = req.params;
+    const payment = await payments.findOne({ referenceCode });
+    res.json(payment);
+  });
+
+  app.get('/payu/:referenceCode/pull', async (req, res) => {
+    const { referenceCode } = req.params;
+    const object = {
+      test: true,
+      command: 'ORDER_DETAIL_BY_REFERENCE_CODE',
+      merchant: { apiLogin: 'pRRXKOl8ikMmt9u', apiKey: '4Vj8eK4rloUd272L48hsrarnUA' },
+      details: { referenceCode }, //: 'papi 0.3733979586110796' },
+      language: 'es',
+    };
+    const url = 'https://sandbox.api.payulatam.com/reports-api/4.0/service.cgi';
+    const body = JSON.stringify(object);
+    const method  = 'post';
+    const headers = {
+      'content-type': 'application/json',
+      accept: 'application/json',
+    };
+    fetch(url, { body, method, headers })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(response.status);
+        }
+        return response.json();
+      }).then(data => {
+        const payload = data.result.payload[0];
+        const transaction = payload.transactions[0];
+        const result = {
+          referenceCode: payload.referenceCode,
+          amount: transaction.additionalValues.TX_VALUE.value,
+          currency: transaction.additionalValues.TX_VALUE.currency,
+          code: data.code,
+          status: payload.status,
+          response: transaction.transactionResponse.responseCode,
+          state: transaction.transactionResponse.state,
+        };
+        res.json(result);
+      }).catch(err => {
+        console.error(err);
+      });
   });
 
   app.get('/users', async (req, res) => {

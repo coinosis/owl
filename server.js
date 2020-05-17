@@ -39,32 +39,55 @@ dbClient.connect((error) => {
   });
 
   app.post('/payu', (req, res) => {
-    payments.insertOne({body: req.body, metadata: {date: new Date(), ip: req.connection.remoteAddress}, headers: req.headers});
+    payments.insertOne({
+      body: req.body,
+      metadata: {date: new Date(), ip: req.connection.remoteAddress},
+      headers: req.headers,
+    });
     res.json('');
   });
 
-  app.get('/payu/all', async (req, res) => {
-    const all = await payments.find().toArray();
-    res.json(all);
-  });
+  app.get(
+    '/payu/:event([a-z0-9-]{1,60})/:user(0x[a-fA-F0-9]{40})',
+    async (req, res, next) => {
+      const { event, user } = req.params;
+      let counter = 1;
+      let pull, push = null;
+      const paymentList = [];
+      do {
+        const referenceCode = `${event}:${user}:${counter}`;
+        pull = await pullPayment(referenceCode);
+        push = await pushPayment(referenceCode);
+        if (pull === null && push === null) break;
+        const payment = { referenceCode, pull, push };
+        paymentList.push(payment);
+        counter ++;
+      } while (true);
+      paymentList.reverse();
+      res.json(paymentList);
+    });
 
-  app.get('/payu/:referenceCode/push', async (req, res) => {
-    const { referenceCode } = req.params;
-    const payment = await payments.findOne({ 'body.reference_sale': referenceCode }, );
+  const pushPayment = async referenceCode => {
+    const payment = await payments.findOne({
+      'body.reference_sale': referenceCode,
+    });
+    if (!payment) return null;
+    const { body } = payment;
     const result = {
-      referenceCode: payment.body.reference_sale,
-      response: payment.body.response_message_pol,
+      requestDate: new Date(body.transaction_date),
+      responseDate: new Date(payment.metadata.date),
+      status: body.response_message_pol,
+      error: body.error_message_bank,
     };
-    res.json(result);
-  });
+    return result;
+  }
 
-  app.get('/payu/:referenceCode/pull', async (req, res) => {
-    const { referenceCode } = req.params;
+  const pullPayment = async referenceCode => {
     const object = {
       test: true,
       command: 'ORDER_DETAIL_BY_REFERENCE_CODE',
-      merchant: { apiLogin: 'pRRXKOl8ikMmt9u', apiKey: '4Vj8eK4rloUd272L48hsrarnUA' },
-      details: { referenceCode }, //: 'papi 0.3733979586110796' },
+      merchant: { apiLogin: 'pRRXKOl8ikMmt9u', apiKey: '4Vj8eK4rloUd272L48hsrarnUA' }, // test credentials
+      details: { referenceCode },
       language: 'es',
     };
     const url = 'https://sandbox.api.payulatam.com/reports-api/4.0/service.cgi';
@@ -74,24 +97,19 @@ dbClient.connect((error) => {
       'content-type': 'application/json',
       accept: 'application/json',
     };
-    fetch(url, { body, method, headers })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(response.status);
-        }
-        return response.json();
-      }).then(data => {
-        const payload = data.result.payload[0];
-        const transaction = payload.transactions[0];
-        const result = {
-          referenceCode: payload.referenceCode,
-          response: transaction.transactionResponse.responseCode,
-        };
-        res.json(result);
-      }).catch(err => {
-        console.error(err);
-      });
-  });
+    const response = await fetch(url, { body, method, headers });
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (data.result.payload === null) return null;
+    const payload = data.result.payload[0];
+    const transaction = payload.transactions[0];
+    const result = {
+      status: transaction.transactionResponse.responseCode,
+      error: transaction.transactionResponse.paymentNetworkResponseErrorMessage,
+      requestDate: new Date(payload.creationDate),
+    };
+    return result;
+  };
 
   app.get('/users', async (req, res) => {
     const userList = await users.find().toArray();

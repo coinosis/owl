@@ -59,6 +59,14 @@ dbClient.connect((error) => {
         pull = await pullPayment(referenceCode);
         push = await pushPayment(referenceCode);
         if (pull === null && push === null) break;
+        if (
+          pull
+            && pull.status === 'APPROVED'
+            && push
+            && push.status === 'APPROVED'
+        ) {
+          events.updateOne({url: event}, { $push: { attendees: user } });
+        }
         const payment = { referenceCode, pull, push };
         paymentList.push(payment);
         counter ++;
@@ -327,7 +335,7 @@ dbClient.connect((error) => {
       console.error(organizer);
       return;
     }
-    const attendees = [ organizer ];
+    const attendees = [];
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const event = {
       name,
@@ -354,6 +362,8 @@ dbClient.connect((error) => {
   });
 
   app.post('/attend', async (req, res) => {
+    res.status(403).end();
+    return;
     const params = Object.keys(req.body);
     if (
       !params.includes('attendee')

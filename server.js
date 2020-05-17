@@ -566,6 +566,13 @@ dbClient.connect((error) => {
       console.error(effect);
     }
   });
+
+  app.use((err, req, res, next) => {
+    res.status(err.status || 500).json(err.message);
+  });
+
 });
+
+
 
 app.listen(port);

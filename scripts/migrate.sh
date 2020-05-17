@@ -5,8 +5,6 @@ production="$(heroku config:get MONGODB_URI -a coinosis)"
 testing="$(heroku config:get MONGODB_URI -a coinosis-test)"
 development=mongodb://localhost/coinosis
 
-mongod --dbpath=${currentDir}/../db &
-
 mongodump --uri=${production} -o proddb-backup/ &&
 mongodump --uri=${testing} -o testdb-backup/ &&
 mongodump --uri=${development} -o devdb-backup/ &&
@@ -16,5 +14,3 @@ mongorestore -d coinosis testdb-backup/heroku_7m49q4bs &&
 
 mongo ${testing} ${currentDir}/deleteAll.js &&
 mongorestore --uri=${testing} -d heroku_7m49q4bs proddb-backup/heroku_t2bt9b8m/
-
-pkill mongod

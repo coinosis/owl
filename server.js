@@ -41,7 +41,11 @@ dbClient.connect((error) => {
   app.post('/payu', (req, res) => {
     payments.insertOne({
       body: req.body,
-      metadata: {date: new Date(), ip: req.connection.remoteAddress},
+      metadata: {
+        date: new Date(),
+        ip: req.connection.remoteAddress,
+        reference: req.body.reference_sale,
+      },
       headers: req.headers,
     });
     res.json('');

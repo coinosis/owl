@@ -61,11 +61,16 @@ dbClient.connect((error) => {
         if (pull === null && push === null) break;
         if (
           pull
-            && pull.status === 'APPROVED'
             && push
+            && pull.status === 'APPROVED'
             && push.status === 'APPROVED'
+            && pull.currency === 'USD'
+            && push.currency === 'USD'
         ) {
-          events.updateOne({url: event}, { $push: { attendees: user } });
+          const eventObject = await events.findOne({url: event});
+          if (pull.value == eventObject.fee && push.value == eventObject.fee) {
+            events.updateOne({url: event}, { $addToSet: { attendees: user } });
+          }
         }
         const payment = { referenceCode, pull, push };
         paymentList.push(payment);
@@ -84,6 +89,8 @@ dbClient.connect((error) => {
     const result = {
       requestDate: new Date(body.transaction_date),
       responseDate: new Date(payment.metadata.date),
+      value: body.value,
+      currency: body.currency,
       status: body.response_message_pol,
       error: body.error_message_bank,
     };
@@ -110,11 +117,14 @@ dbClient.connect((error) => {
     const data = await response.json();
     if (data.result.payload === null) return null;
     const payload = data.result.payload[0];
+    const txValue = payload.additionalValues.TX_VALUE;
     const transaction = payload.transactions[0];
     const result = {
       status: transaction.transactionResponse.responseCode,
       error: transaction.transactionResponse.paymentNetworkResponseErrorMessage,
       requestDate: new Date(payload.creationDate),
+      value: txValue.value,
+      currency: txValue.currency,
     };
     return result;
   };

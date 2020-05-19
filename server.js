@@ -4,13 +4,13 @@ const cors = require('cors');
 const Web3EthAccounts = require('web3-eth-accounts');
 const utils = require('web3-utils');
 const fetch = require('node-fetch');
-const secretSettings = require('./secretSettings.json');
+const settings = require('./settings.json');
 const crypto = require('crypto');
 
 const environment = process.env.ENVIRONMENT || 'testing';
-const payUReports = secretSettings[environment]['payUReports'];
-const payULogin = secretSettings[environment]['payULogin'];
-const payUKey = secretSettings[environment]['payUKey'];
+const payUReports = settings[environment]['payUReports'];
+const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
+const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
 const port = process.env.PORT || 3000;
 const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017/coinosis';
 const dateOptions = {

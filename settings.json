@@ -1,0 +1,8 @@
+{
+  "testing": {
+    "payUReports": "https://sandbox.api.payulatam.com/reports-api/4.0/service.cgi"
+  },
+  "production": {
+    "payUReports": "https://api.payulatam.com/reports-api/4.0/service.cgi"
+  }
+}

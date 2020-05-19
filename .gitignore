@@ -5,3 +5,4 @@ unitdb
 devdb-backup
 testdb-backup
 proddb-backup
+secretSettings.json

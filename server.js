@@ -4,7 +4,13 @@ const cors = require('cors');
 const Web3EthAccounts = require('web3-eth-accounts');
 const utils = require('web3-utils');
 const fetch = require('node-fetch');
+const secretSettings = require('./secretSettings.json');
+const crypto = require('crypto');
 
+const environment = process.env.ENVIRONMENT || 'testing';
+const payUReports = secretSettings[environment]['payUReports'];
+const payULogin = secretSettings[environment]['payULogin'];
+const payUKey = secretSettings[environment]['payUKey'];
 const port = process.env.PORT || 3000;
 const dbUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017/coinosis';
 const dateOptions = {
@@ -105,18 +111,17 @@ dbClient.connect((error) => {
     const object = {
       test: true,
       command: 'ORDER_DETAIL_BY_REFERENCE_CODE',
-      merchant: { apiLogin: 'pRRXKOl8ikMmt9u', apiKey: '4Vj8eK4rloUd272L48hsrarnUA' }, // test credentials
+      merchant: { apiLogin: payULogin, apiKey: payUKey },
       details: { referenceCode },
       language: 'es',
     };
-    const url = 'https://sandbox.api.payulatam.com/reports-api/4.0/service.cgi';
     const body = JSON.stringify(object);
     const method  = 'post';
     const headers = {
       'content-type': 'application/json',
       accept: 'application/json',
     };
-    const response = await fetch(url, { body, method, headers });
+    const response = await fetch(payUReports, { body, method, headers });
     if (!response.ok) return null;
     const data = await response.json();
     if (data.result === null || data.result.payload === null) {
@@ -135,6 +140,35 @@ dbClient.connect((error) => {
     };
     return result;
   };
+
+  app.post('/payu/hash', async (req, res, next) => {
+    try {
+
+      const params = {
+        merchantId: isNumber,
+        referenceCode: isStringLongerThan(45),
+        amount: isNumber,
+        currency: isCurrencyCode,
+      };
+      await checkParams(params, req);
+      const { merchantId, referenceCode, amount, currency } = req.body;
+      const payload = `${payUKey}~${merchantId}~${referenceCode}~${amount}`
+            + `~${currency}`;
+      const hash = crypto.createHash('sha256');
+      hash.update(payload);
+      const digest = hash.digest('hex');
+      res.json(digest);
+
+    } catch (err) {
+      if (err.name === 'HttpError') {
+        next(err);
+      }
+      else {
+        next(new Error());
+        console.error(err);
+      }
+    }
+  });
 
   app.get('/users', async (req, res) => {
     const userList = await users.find().toArray();
@@ -600,6 +634,37 @@ dbClient.connect((error) => {
 
 });
 
+class HttpError extends Error {
+  constructor(status, code) {
+    super(code);
+    this.name = 'HttpError';
+    this.status = status;
+    this.code = code;
+  }
+}
 
+const WRONG_PARAM_NAMES = 'wrong-param-names';
+const WRONG_PARAM_VALUES = 'wrong-param-values';
+
+const isNumber = value => !isNaN(value);
+const isString = value => value !== '';
+const isStringLongerThan = length => value => value.length > length;
+const isCurrencyCode = value => value.length === 3;
+
+const checkParams = async (expected, req) => {
+  const actual = req.body;
+  const expectedNames = Object.keys(expected);
+  const actualNames = Object.keys(actual);
+  if (!expectedNames.every(name => actualNames.includes(name))) {
+    throw new HttpError(400, WRONG_PARAM_NAMES);
+  }
+  for (const name in expected) {
+    const test = expected[name];
+    const actualValue = actual[name];
+    if (!test(actualValue)) {
+      throw new HttpError(400, WRONG_PARAM_VALUES);
+    }
+  }
+}
 
 app.listen(port);

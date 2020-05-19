@@ -7,4 +7,5 @@ development=mongodb://localhost/coinosis
 mongodump --uri=${testing} -o ${currentDir}/../testdb-backup/ &&
 mongodump --uri=${development} -o ${currentDir}/../devdb-backup/ &&
 
-mongorestore -d coinosis testdb-backup/heroku_7m49q4bs
+mongo ${development} ${currentDir}/deleteAll.js &&
+mongorestore -d coinosis ${currentDir}/../testdb-backup/heroku_7m49q4bs

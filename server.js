@@ -8,7 +8,8 @@ const settings = require('./settings.json');
 const crypto = require('crypto');
 
 const environment = process.env.ENVIRONMENT || 'testing';
-const payUReports = settings[environment]['payUReports'];
+const environmentId = settings[environment].id;
+const payUReports = settings[environment].payUReports;
 const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
 const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
 const port = process.env.PORT || 3000;
@@ -65,7 +66,7 @@ dbClient.connect((error) => {
       let pull, push = null;
       const paymentList = [];
       do {
-        const referenceCode = `${event}:${user}:${counter}`;
+        const referenceCode = `${event}:${user}:${counter}:${environmentId}`;
         pull = await pullPayment(referenceCode);
         push = await pushPayment(referenceCode);
         if (pull === null && push === null) break;

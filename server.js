@@ -119,16 +119,20 @@ dbClient.connect((error) => {
     const response = await fetch(url, { body, method, headers });
     if (!response.ok) return null;
     const data = await response.json();
-    if (data.result.payload === null) return null;
+    if (data.result === null || data.result.payload === null) {
+      console.error(data);
+      return null;
+    }
     const payload = data.result.payload[0];
     const txValue = payload.additionalValues.TX_VALUE;
     const transaction = payload.transactions[0];
     const result = {
-      status: transaction.transactionResponse.responseCode,
-      error: transaction.transactionResponse.paymentNetworkResponseErrorMessage,
+      status: transaction.transactionResponse.state,
+      response: transaction.transactionResponse.responseCode,
       requestDate: new Date(payload.creationDate),
       value: txValue.value,
       currency: txValue.currency,
+      receipt: transaction.extraParameters.URL_PAYMENT_RECEIPT_HTML,
     };
     return result;
   };

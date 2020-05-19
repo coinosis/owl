@@ -120,7 +120,6 @@ dbClient.connect((error) => {
     if (!response.ok) return null;
     const data = await response.json();
     if (data.result === null || data.result.payload === null) {
-      console.error(data);
       return null;
     }
     const payload = data.result.payload[0];

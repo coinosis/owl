@@ -174,6 +174,21 @@ dbClient.connect((error) => {
     res.json(userFilter[0]);
   });
 
+  app.put('/user/:address(0x[a-fA-F0-9]{40})', async (req, res, next) => { try {
+    const { address } = req.params;
+    await checkSignature(address, req);
+    const params = {
+      email: isEmail,
+    };
+    await checkOptionalParams(params, req);
+    const { email } = req.body;
+    if (email) {
+      const result = await users.updateOne({ address }, { $set: { email }});
+    }
+    const user = await users.findOne({ address });
+    res.json(user);
+  } catch (err) { handleError(err, next); }});
+
   app.post('/users', async (req, res) => {
     const params = Object.keys(req.body);
     if (
@@ -632,7 +647,9 @@ class HttpError extends Error {
   }
 }
 
-const WRONG_PARAM_NAMES = 'wrong-param-names';
+const MALFORMED_SIGNATURE = 'malformed-signature';
+const INSUFFICIENT_PARAMS = 'insufficient-params';
+const UNAUTHORIZED = 'unauthorized';
 const WRONG_PARAM_VALUES = 'wrong-param-values';
 const PAID_EVENT = 'paid-event';
 
@@ -640,13 +657,38 @@ const isNumber = value => !isNaN(value);
 const isString = value => value !== '';
 const isStringLongerThan = length => value => value.length > length;
 const isCurrencyCode = value => value.length === 3;
+const isEmail = value =>
+      value.length < 255
+      && value.length > 5
+      && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value);
+
+const checkSignature = async (expectedSigner, req) => {
+  const { signature, ...object } = req.body;
+  if (!Object.keys(object).length) {
+    throw new HttpError(400, INSUFFICIENT_PARAMS);
+  }
+  if (!/^0x[0-9a-f]+$/.test(signature)) {
+    throw new HttpError(401, MALFORMED_SIGNATURE);
+  }
+  const payload = JSON.stringify(object);
+  const hexPayload = utils.utf8ToHex(payload);
+  let actualSigner;
+  try {
+    actualSigner = accounts.recover(hexPayload, signature);
+  } catch (err) {
+    throw new HttpError(401, MALFORMED_SIGNATURE);
+  }
+  if (expectedSigner !== actualSigner) {
+    throw new HttpError(403, UNAUTHORIZED);
+  }
+}
 
 const checkParams = async (expected, req) => {
   const actual = req.body;
   const expectedNames = Object.keys(expected);
   const actualNames = Object.keys(actual);
   if (!expectedNames.every(name => actualNames.includes(name))) {
-    throw new HttpError(400, WRONG_PARAM_NAMES);
+    throw new HttpError(400, INSUFFICIENT_PARAMS);
   }
   for (const name in expected) {
     const test = expected[name];
@@ -654,6 +696,34 @@ const checkParams = async (expected, req) => {
     if (!test(actualValue)) {
       throw new HttpError(400, WRONG_PARAM_VALUES);
     }
+  }
+}
+
+const checkOptionalParams = async (expected, req) => {
+  const actual = req.body;
+  let count = 0;
+  for (const name in expected) {
+    if (name in actual) {
+      count ++;
+      const test = expected[name];
+      const actualValue = actual[name];
+      if (!test(actualValue)) {
+        throw new HttpError(400, WRONG_PARAM_VALUES);
+      }
+    }
+  }
+  if (!count) {
+    throw new HttpError(400, INSUFFICIENT_PARAMS);
+  }
+}
+
+const handleError = (err, next) => {
+  if (err.name === 'HttpError') {
+    next(err);
+  }
+  else {
+    next(new Error());
+    console.error(err);
   }
 }
 

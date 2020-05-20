@@ -159,6 +159,25 @@ describe('GET /users', () => {
   });
 });
 
+describe('PUT /user/:address', () => {
+  it('succeeds', async () => {
+    const object = {
+      email: 'hola@ejemplo.com',
+    };
+    const payload = JSON.stringify(object);
+    const hexPayload = utils.utf8ToHex(payload);
+    const { signature } = accounts.sign(hexPayload, privateKey);
+    object.signature = signature;
+    const options = {
+      method: 'put',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(object)
+    };
+    const response = await fetch(`${url}/user/${address}`, options);
+    assert.ok(response.ok);
+  });
+});
+
 const event = {
   name: 'Hack The Box Meetup: Colombia Sesión 2 (Virtual)',
   url: 'hack-the-box-meetup-colombia-sesion-2-virtual',

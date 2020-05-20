@@ -172,7 +172,7 @@ VirtualBox (https://www.virtualbox.org/wiki/Downloads)
 Kali LInux (https://www.kali.org/downloads/).
 
 NOTA: hemos visto la encuesta y estaremos mejorando basados en la informacion proporcionada. Nos estaremos adaptando y esperamos brindarles una mayor calidad en las charlas. Es por eso que les pedimos comprension para el desarrollo; por lo tanto, pondremos la charla inicialmente de 2 horas y si vemos la necesidad la extendemos un poco más.`,
-  fee: 4.65,
+  fee: 0,
   start: new Date('2021-05-12T19:00:00-05:00'),
   end: new Date('2021-05-12T21:00:00-05:00'),
   beforeStart: new Date('2019-05-12T18:50:00-05:00'),
@@ -180,7 +180,12 @@ NOTA: hemos visto la encuesta y estaremos mejorando basados en la informacion pr
   organizer: address,
 };
 
-const verifyEvent = data => {
+const paidEvent = {...event}
+paidEvent.name = 'Paid Event';
+paidEvent.url = 'paid-event';
+paidEvent.fee = 6.45;
+
+const verifyEvent = (data, event) => {
   assert.ok(Object.keys(event).every(field => field in data));
   const dateFields = ['start', 'end', 'beforeStart', 'afterEnd'];
   for (const field in event) {
@@ -193,7 +198,7 @@ const verifyEvent = data => {
   }
   const newFields = ['signature', 'attendees', 'creation', 'ip'];
   assert.ok(newFields.every(field => field in data));
-  assert.equal(data.attendees[0], address);
+  assert.equal(data.attendees.length, 0);
   assert.closeTo(
     new Date(data.creation).getTime(),
     new Date().getTime(),
@@ -207,7 +212,14 @@ describe('POST /events', () => {
     const response = await post('events', event, privateKey);
     assert.ok(response.ok, response.status);
     const data = await response.json();
-    verifyEvent(data);
+    verifyEvent(data, event);
+  });
+
+  it('succeeds with paid event', async () => {
+    const response = await post('events', paidEvent, privateKey);
+    assert.ok(response.ok, response.status);
+    const data = await response.json();
+    verifyEvent(data, paidEvent);
   });
 
   it('fails due to valid but different signature', async () => {
@@ -260,8 +272,9 @@ describe('GET /events', () => {
     const response = await fetch(`${url}/events`);
     assert.ok(response.ok, response.status);
     const data = await response.json();
-    assert.equal(1, data.length);
-    verifyEvent(data[0]);
+    assert.equal(2, data.length);
+    verifyEvent(data[0], event);
+    verifyEvent(data[1], paidEvent);
   });
 });
 
@@ -270,15 +283,14 @@ describe('GET /event/:eventURL', () => {
     const response = await fetch(`${url}/event/${event.url}`);
     assert.ok(response.ok, response.status);
     const data = await response.json();
-    verifyEvent(data);
+    verifyEvent(data, event);
   });
 });
 
 describe('POST /attend', () => {
 
-  const object = { attendee: users[0].address, event: event.url };
-
   it('succeeds', async () => {
+    const object = { attendee: users[0].address, event: event.url };
     const response = await post('attend', object, privateKeys[0]);
     assert.ok(response.ok);
     await post(
@@ -291,6 +303,17 @@ describe('POST /attend', () => {
       { attendee: users[2].address, event: event.url },
       privateKeys[2]
     );
+    await post(
+      'attend',
+      { attendee: address, event: event.url },
+      privateKey
+    );
+  });
+
+  it('fails due to paid event', async () => {
+    const object = { attendee: address, event: paidEvent.url };
+    const response = await post('attend', object, privateKey);
+    assert.isNotOk(response.ok);
   });
 });
 

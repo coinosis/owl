@@ -142,34 +142,22 @@ dbClient.connect((error) => {
     return result;
   };
 
-  app.post('/payu/hash', async (req, res, next) => {
-    try {
-
-      const params = {
-        merchantId: isNumber,
-        referenceCode: isStringLongerThan(45),
-        amount: isNumber,
-        currency: isCurrencyCode,
-      };
-      await checkParams(params, req);
-      const { merchantId, referenceCode, amount, currency } = req.body;
-      const payload = `${payUKey}~${merchantId}~${referenceCode}~${amount}`
-            + `~${currency}`;
-      const hash = crypto.createHash('sha256');
-      hash.update(payload);
-      const digest = hash.digest('hex');
-      res.json(digest);
-
-    } catch (err) {
-      if (err.name === 'HttpError') {
-        next(err);
-      }
-      else {
-        next(new Error());
-        console.error(err);
-      }
-    }
-  });
+  app.post('/payu/hash', async (req, res, next) => { try {
+    const params = {
+      merchantId: isNumber,
+      referenceCode: isStringLongerThan(45),
+      amount: isNumber,
+      currency: isCurrencyCode,
+    };
+    await checkParams(params, req);
+    const { merchantId, referenceCode, amount, currency } = req.body;
+    const payload = `${payUKey}~${merchantId}~${referenceCode}~${amount}`
+          + `~${currency}`;
+    const hash = crypto.createHash('sha256');
+    hash.update(payload);
+    const digest = hash.digest('hex');
+    res.json(digest);
+    } catch (err) { handleError(err, next) }});
 
   app.get('/users', async (req, res) => {
     const userList = await users.find().toArray();
@@ -485,7 +473,7 @@ dbClient.connect((error) => {
       }
     }
     res.end();
-  } catch (err) { next(err) }});
+  } catch (err) { handleError(err, next) }});
 
   app.get('/assessments/:event([a-z0-9-]{1,60})', async (req, res) => {
     const { event } = req.params;

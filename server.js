@@ -25,7 +25,7 @@ const accounts = new Web3EthAccounts(infuraURI);
 
 const app = express();
 app.use(express.json());
-app.use(express.urlencoded());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 const dbClient = new MongoClient(dbUrl, { useUnifiedTopology: true });
 const version = '1.0.0';
@@ -413,9 +413,7 @@ dbClient.connect((error) => {
     }
   });
 
-  app.post('/attend', async (req, res) => {
-    res.status(403).end();
-    return;
+  app.post('/attend', async (req, res, next) => { try {
     const params = Object.keys(req.body);
     if (
       !params.includes('attendee')
@@ -464,6 +462,9 @@ dbClient.connect((error) => {
       return;
     }
     const eventObject = eventFilter[0];
+    if (eventObject.fee != 0) {
+      throw new HttpError(400, PAID_EVENT);
+    }
     const now = new Date();
     if (now > eventObject.afterEnd) {
       res.status(400).json('the event already finished');
@@ -471,7 +472,6 @@ dbClient.connect((error) => {
       return;
     }
     if (!eventObject.attendees.includes(attendee)) {
-      eventObject.attendees.push(attendee);
       const effect = await events.updateOne({url: event}, {
         $push: {attendees: attendee}
       });
@@ -485,7 +485,7 @@ dbClient.connect((error) => {
       }
     }
     res.end();
-  });
+  } catch (err) { next(err) }});
 
   app.get('/assessments/:event([a-z0-9-]{1,60})', async (req, res) => {
     const { event } = req.params;
@@ -646,6 +646,7 @@ class HttpError extends Error {
 
 const WRONG_PARAM_NAMES = 'wrong-param-names';
 const WRONG_PARAM_VALUES = 'wrong-param-values';
+const PAID_EVENT = 'paid-event';
 
 const isNumber = value => !isNaN(value);
 const isString = value => value !== '';

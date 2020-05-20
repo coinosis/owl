@@ -308,7 +308,7 @@ dbClient.connect((error) => {
     } = req.body;
     if (
       name === ''
-        || !/^[a-z0-9-]{1,60}$/.test(url)
+        || !/^[a-z1-9-]{1}[a-z0-9-]{0,59}$/.test(url)
         || description === ''
         || isNaN(Number(fee))
         || isNaN(new Date(start).getTime())

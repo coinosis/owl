@@ -160,15 +160,7 @@ dbClient.connect((error) => {
       const digest = hash.digest('hex');
       res.json(digest);
 
-    } catch (err) {
-      if (err.name === 'HttpError') {
-        next(err);
-      }
-      else {
-        next(new Error());
-        console.error(err);
-      }
-    }
+    } catch (err) { handleError(err, next) }
   });
 
   app.get('/users', async (req, res) => {
@@ -665,6 +657,16 @@ const checkParams = async (expected, req) => {
     if (!test(actualValue)) {
       throw new HttpError(400, WRONG_PARAM_VALUES);
     }
+  }
+}
+
+const handleError = (err, next) => {
+  if (err.name === 'HttpError') {
+    next(err);
+  }
+  else {
+    next(new Error());
+    console.error(err);
   }
 }
 

@@ -181,6 +181,7 @@ dbClient.connect((error) => {
       email: isEmail,
     };
     await checkOptionalParams(params, req);
+    await checkUserExists(users, address);
     const { email } = req.body;
     if (email) {
       const result = await users.updateOne({ address }, { $set: { email }});
@@ -648,9 +649,10 @@ class HttpError extends Error {
 }
 
 const MALFORMED_SIGNATURE = 'malformed-signature';
-const INSUFFICIENT_PARAMS = 'insufficient-params';
 const UNAUTHORIZED = 'unauthorized';
+const INSUFFICIENT_PARAMS = 'insufficient-params';
 const WRONG_PARAM_VALUES = 'wrong-param-values';
+const USER_NONEXISTENT = 'user-nonexistent';
 const PAID_EVENT = 'paid-event';
 
 const isNumber = value => !isNaN(value);
@@ -714,6 +716,13 @@ const checkOptionalParams = async (expected, req) => {
   }
   if (!count) {
     throw new HttpError(400, INSUFFICIENT_PARAMS);
+  }
+}
+
+const checkUserExists = async (users, address) => {
+  const count = await users.countDocuments({ address });
+  if (count === 0) {
+    throw new HttpError(400, USER_NONEXISTENT);
   }
 }
 

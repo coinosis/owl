@@ -131,13 +131,14 @@ dbClient.connect((error) => {
     const payload = data.result.payload[0];
     const txValue = payload.additionalValues.TX_VALUE;
     const transaction = payload.transactions[0];
+    const extraParameters = transaction.extraParameters;
     const result = {
       status: transaction.transactionResponse.state,
       response: transaction.transactionResponse.responseCode,
       requestDate: new Date(payload.creationDate),
       value: txValue.value,
       currency: txValue.currency,
-      receipt: transaction.extraParameters.URL_PAYMENT_RECEIPT_HTML,
+      receipt: extraParameters ? extraParameters.URL_PAYMENT_RECEIPT_HTML : '',
     };
     return result;
   };

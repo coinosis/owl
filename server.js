@@ -10,6 +10,7 @@ const crypto = require('crypto');
 const environment = process.env.ENVIRONMENT || 'testing';
 const environmentId = settings[environment].id;
 const payUReports = settings[environment].payUReports;
+const etherscanKey = settings[environment].etherscanKey;
 const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
 const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
 const port = process.env.PORT || 3000;
@@ -19,6 +20,9 @@ const dateOptions = {
   dateStyle: 'medium',
   timeStyle: 'medium'
 };
+const etherscanAPI = 'https://api.etherscan.io/api';
+const ETHPrice = `${etherscanAPI}?module=stats&action=ethprice`
+      + `&apiKey=${etherscanKey}`;
 const infuraURI =
       'wss://mainnet.infura.io/ws/v3/58a2b59a8caa4c2e9834f8c3dd228b06';
 const accounts = new Web3EthAccounts(infuraURI);
@@ -44,6 +48,19 @@ dbClient.connect((error) => {
   app.get('/', (req, res) => {
     res.json({version});
   });
+
+  app.get('/eth/price', async (req, res, next) => { try {
+    const response = await fetch(ETHPrice);
+    if (!response.ok) {
+      throw new HttpError(500, SERVICE_UNAVAILABLE);
+    }
+    const data = await response.json();
+    if (data.status !== '1') {
+      throw new HttpError(500, SERVICE_UNAVAILABLE);
+    }
+    const price = data.result.ethusd;
+    res.json(price);
+  } catch (err) { handleError(err, next) }});
 
   app.post('/payu', (req, res) => {
     payments.insertOne({
@@ -659,6 +676,7 @@ const INSUFFICIENT_PARAMS = 'insufficient-params';
 const WRONG_PARAM_VALUES = 'wrong-param-values';
 const USER_NONEXISTENT = 'user-nonexistent';
 const PAID_EVENT = 'paid-event';
+const SERVICE_UNAVAILABLE = 'service-unavailable';
 
 const isNumber = value => !isNaN(value);
 const isString = value => value !== '';

@@ -1,10 +1,12 @@
 {
   "testing": {
     "id": "testing",
-    "payUReports": "https://sandbox.api.payulatam.com/reports-api/4.0/service.cgi"
+    "payUReports": "https://sandbox.api.payulatam.com/reports-api/4.0/service.cgi",
+    "etherscanKey": "K33HJVG46X7392MMEVXXYCFERNVK77I13T"
   },
   "production": {
     "id": "",
-    "payUReports": "https://api.payulatam.com/reports-api/4.0/service.cgi"
+    "payUReports": "https://api.payulatam.com/reports-api/4.0/service.cgi",
+    "etherscanKey": "NAVRNVJWI4D72RX8Z5C5FAHZ8BCNC1DCVN"
   }
 }

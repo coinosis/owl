@@ -73,6 +73,15 @@ describe('GET /', () => {
   });
 });
 
+describe('GET /eth/price', () => {
+  it('succeeds', async () => {
+    const response = await fetch(`${url}/eth/price`);
+    assert.ok(response.ok);
+    const data = await response.json();
+    assert.ok(!isNaN(data));
+  });
+});
+
 describe('POST /users', () => {
   it('succeeds', async () => {
     const object = { address, name };

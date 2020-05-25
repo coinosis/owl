@@ -23,6 +23,8 @@ const dateOptions = {
 const etherscanAPI = 'https://api.etherscan.io/api';
 const ETHPrice = `${etherscanAPI}?module=stats&action=ethprice`
       + `&apiKey=${etherscanKey}`;
+const gasTracker = `${etherscanAPI}?module=gastracker&action=gasoracle`
+      + `&apiKey=${etherscanKey}`;
 const infuraURI =
       'wss://mainnet.infura.io/ws/v3/58a2b59a8caa4c2e9834f8c3dd228b06';
 const accounts = new Web3EthAccounts(infuraURI);
@@ -60,6 +62,19 @@ dbClient.connect((error) => {
     }
     const price = data.result.ethusd;
     res.json(price);
+  } catch (err) { handleError(err, next) }});
+
+  app.get('/eth/gas', async (req, res, next) => { try {
+    const response = await fetch(gasTracker);
+    if (!response.ok) {
+      throw new HttpError(500, SERVICE_UNAVAILABLE);
+    }
+    const data = await response.json();
+    if (data.status !== '1') {
+      throw new HttpError(500, SERVICE_UNAVAILABLE);
+    }
+    const { SafeGasPrice, ProposeGasPrice } = data.result;
+    res.json({safe: SafeGasPrice, propose: ProposeGasPrice});
   } catch (err) { handleError(err, next) }});
 
   app.post('/payu', (req, res) => {

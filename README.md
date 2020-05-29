@@ -13,13 +13,14 @@ npm i
 mkdir db
 npm i -g nodemon
 npm run start:dev
+scripts/initialize.sh
 
 ```
 
 ## Submit your changes
 
 1. Add the relevant tests in `test.js`
-2. Make sure all tests run smoothly: `npm test`
+2. Make sure all tests are successful: `npm test`
 3. Create a pull request targeting the `dev` branch
 
 ## interact with the database
@@ -39,7 +40,7 @@ $ mongo coinosis
 1. create a heroku account
 2. install the mongolab add-on
 3. deploy the code
-4. `scripts/initialize.sh <your-heroku-app-name>`
+4. `MONGODB_URI=$(heroku config:get MONGODB_URI -a <your-app-name>) scripts/initialize.sh`
 
 ## migrate data from production
 

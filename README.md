@@ -3,21 +3,13 @@
 * [mongodb](https://docs.mongodb.com/manual/administration/install-community/)
 * [heroku CLI](https://devcenter.heroku.com/articles/heroku-cli#download-and-install)
 
-## install on a dev environment
+## install & run on a dev environment
 
 ```bash
 
-git clone https://github.com/coinosis/owl -b test
+git clone https://github.com/coinosis/owl -b dev
 cd owl
 npm i
-scripts/initialize.sh
-
-```
-
-## run on a development environment
-
-```bash
-
 mkdir db
 npm i -g nodemon
 npm run start:dev
@@ -28,10 +20,7 @@ npm run start:dev
 
 1. Add the relevant tests in `test.js`
 2. Make sure all tests run smoothly: `npm test`
-3. Commit & push to the `test` branch
-4. Check everything is working in [the test deployment](https://coinosis-test.herokuapp.com)
-5. Create a pull request targeting the `master` branch
-6. Once accepted the code will be running live in [the production deployment](https://coinosis.herokuapp.com)
+3. Create a pull request targeting the `dev` branch
 
 ## interact with the database
 

@@ -198,6 +198,7 @@ describe('PUT /user/:address', () => {
 });
 
 const event = {
+  address: '0x0C0346f346cA57a087eD4B8f8a6F0473723657cD',
   name: 'Hack The Box Meetup: Colombia Sesión 2 (Virtual)',
   url: 'hack-the-box-meetup-colombia-sesion-2-virtual',
   description: `Cualquier persona interesada en comenzar y aprender sobre Hack The Box, hacking y pentesting es bienvenida a unirse al grupo. Compartimos conocimientos y hackeamos juntos.
@@ -219,6 +220,7 @@ NOTA: hemos visto la encuesta y estaremos mejorando basados en la informacion pr
 };
 
 const paidEvent = {...event}
+paidEvent.address = '0xA1b19bCd50a24Be0CB399C1ec0f7ca546b94A2B0';
 paidEvent.name = 'Paid Event';
 paidEvent.url = 'paid-event';
 paidEvent.fee = 6.45;

@@ -316,9 +316,10 @@ dbClient.connect((error) => {
     res.json(sortedUsers);
   });
 
-  app.post('/events', async (req, res) => {
+  app.post('/events', async (req, res) => { try {
     const params = Object.keys(req.body);
     const expectedParams = [
+      'address',
       'name',
       'url',
       'description',
@@ -336,6 +337,7 @@ dbClient.connect((error) => {
       return;
     }
     const {
+      address,
       name,
       url,
       description,
@@ -348,7 +350,8 @@ dbClient.connect((error) => {
       signature,
     } = req.body;
     if (
-      name === ''
+      !/^0x[0-9a-fA-F]{40}$/.test(address)
+        || name === ''
         || !/^[a-z1-9-]{1}[a-z0-9-]{0,59}$/.test(url)
         || description === ''
         || isNaN(Number(fee))
@@ -364,6 +367,7 @@ dbClient.connect((error) => {
       return;
     }
     const object = {
+      address,
       name,
       url,
       description,
@@ -388,6 +392,10 @@ dbClient.connect((error) => {
       res.status(401).json('wrong signature');
       console.error(organizer, signer);
       return;
+    }
+    const addressCount = await events.countDocuments({address});
+    if (addressCount !== 0) {
+      throw new HttpError(400, 'address already exists');
     }
     const nameCount = await events.countDocuments({name});
     if (nameCount !== 0) {
@@ -431,6 +439,7 @@ dbClient.connect((error) => {
     const attendees = [];
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const event = {
+      address,
       name,
       url,
       description,
@@ -452,7 +461,7 @@ dbClient.connect((error) => {
       res.status(500).end();
       console.error(effect);
     }
-  });
+  } catch (err) { handleError(err); } });
 
   app.post('/attend', async (req, res, next) => { try {
     const params = Object.keys(req.body);

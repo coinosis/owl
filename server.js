@@ -316,7 +316,7 @@ dbClient.connect((error) => {
     res.json(sortedUsers);
   });
 
-  app.post('/events', async (req, res) => { try {
+  app.post('/events', async (req, res, next) => { try {
     const params = Object.keys(req.body);
     const expectedParams = [
       'address',
@@ -461,7 +461,7 @@ dbClient.connect((error) => {
       res.status(500).end();
       console.error(effect);
     }
-  } catch (err) { handleError(err); } });
+  } catch (err) { handleError(err, next); }});
 
   app.post('/attend', async (req, res, next) => { try {
     const params = Object.keys(req.body);

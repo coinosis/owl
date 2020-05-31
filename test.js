@@ -211,7 +211,7 @@ VirtualBox (https://www.virtualbox.org/wiki/Downloads)
 Kali LInux (https://www.kali.org/downloads/).
 
 NOTA: hemos visto la encuesta y estaremos mejorando basados en la informacion proporcionada. Nos estaremos adaptando y esperamos brindarles una mayor calidad en las charlas. Es por eso que les pedimos comprension para el desarrollo; por lo tanto, pondremos la charla inicialmente de 2 horas y si vemos la necesidad la extendemos un poco más.`,
-  fee: 0,
+  feeWei: 0,
   start: new Date('2021-05-12T19:00:00-05:00'),
   end: new Date('2021-05-12T21:00:00-05:00'),
   beforeStart: new Date('2019-05-12T18:50:00-05:00'),
@@ -223,7 +223,7 @@ const paidEvent = {...event}
 paidEvent.address = '0xA1b19bCd50a24Be0CB399C1ec0f7ca546b94A2B0';
 paidEvent.name = 'Paid Event';
 paidEvent.url = 'paid-event';
-paidEvent.fee = 6.45;
+paidEvent.feeWei = 20000000000000000;
 
 const verifyEvent = (data, event) => {
   assert.ok(Object.keys(event).every(field => field in data));

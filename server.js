@@ -323,7 +323,7 @@ dbClient.connect((error) => {
       'name',
       'url',
       'description',
-      'fee',
+      'feeWei',
       'start',
       'end',
       'beforeStart',
@@ -341,7 +341,7 @@ dbClient.connect((error) => {
       name,
       url,
       description,
-      fee,
+      feeWei,
       start,
       end,
       beforeStart,
@@ -354,7 +354,7 @@ dbClient.connect((error) => {
         || name === ''
         || !/^[a-z1-9-]{1}[a-z0-9-]{0,59}$/.test(url)
         || description === ''
-        || isNaN(Number(fee))
+        || isNaN(Number(feeWei))
         || isNaN(new Date(start).getTime())
         || isNaN(new Date(end).getTime())
         || isNaN(new Date(beforeStart).getTime())
@@ -371,7 +371,7 @@ dbClient.connect((error) => {
       name,
       url,
       description,
-      fee,
+      feeWei,
       start,
       end,
       beforeStart,
@@ -409,7 +409,7 @@ dbClient.connect((error) => {
       console.error(urlCount, name);
       return;
     }
-    const feeAmount = Number(fee);
+    const feeAmount = Number(feeWei);
     if (feeAmount < 0 || feeAmount === Infinity) {
       res.status(400).json('invalid fee');
       console.error(feeAmount);
@@ -443,7 +443,7 @@ dbClient.connect((error) => {
       name,
       url,
       description,
-      fee: feeAmount,
+      feeWei: feeAmount,
       start: startDate,
       end: endDate,
       beforeStart: beforeStartDate,
@@ -512,7 +512,7 @@ dbClient.connect((error) => {
       return;
     }
     const eventObject = eventFilter[0];
-    if (eventObject.fee != 0) {
+    if (eventObject.feeWei != 0) {
       throw new HttpError(400, PAID_EVENT);
     }
     const now = new Date();

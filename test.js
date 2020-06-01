@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 const Web3EthAccounts = require('web3-eth-accounts');
 const utils = require('web3-utils');
 
-const url = 'http://localhost:3000';
+const url = 'http://localhost:5678';
 const infuraKey = '58a2b59a8caa4c2e9834f8c3dd228b06';
 const infuraUrl = `https://mainnet.infura.io/v3/${infuraKey}`;
 const accounts = new Web3EthAccounts(infuraUrl);

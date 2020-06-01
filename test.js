@@ -233,9 +233,8 @@ const verifyEvent = (data, event) => {
       assert.equal(data[field], event[field]);
     }
   }
-  const newFields = ['signature', 'attendees', 'creation', 'ip'];
+  const newFields = ['signature', 'creation', 'ip'];
   assert.ok(newFields.every(field => field in data));
-  assert.equal(data.attendees.length, 0);
   assert.closeTo(
     new Date(data.creation).getTime(),
     new Date().getTime(),
@@ -321,48 +320,6 @@ describe('GET /event/:eventURL', () => {
     assert.ok(response.ok, response.status);
     const data = await response.json();
     verifyEvent(data, event);
-  });
-});
-
-describe('POST /attend', () => {
-
-  it('succeeds', async () => {
-    const object = { attendee: users[0].address, event: event.url };
-    const response = await post('attend', object, privateKeys[0]);
-    assert.ok(response.ok);
-    await post(
-      'attend',
-      { attendee: users[1].address, event: event.url },
-      privateKeys[1]
-    );
-    await post(
-      'attend',
-      { attendee: users[2].address, event: event.url },
-      privateKeys[2]
-    );
-    await post(
-      'attend',
-      { attendee: address, event: event.url },
-      privateKey
-    );
-  });
-
-  it('fails due to paid event', async () => {
-    const object = { attendee: address, event: paidEvent.url };
-    const response = await post('attend', object, privateKey);
-    assert.isNotOk(response.ok);
-  });
-});
-
-describe('GET /event/:eventURL/attendees', () => {
-  it('succeeds, respects order', async () => {
-    const response = await fetch(`${url}/event/${event.url}/attendees`);
-    assert.ok(response.ok, response.status);
-    const data = await response.json();
-    assert.equal(data[0].name, users[1].name);
-    assert.equal(data[1].name, users[0].name);
-    assert.equal(data[2].name, users[2].name);
-    assert.equal(data[3].name, name);
   });
 });
 

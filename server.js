@@ -89,6 +89,7 @@ dbClient.connect((error) => {
     res.json('');
   });
 
+  // TODO: update for v2.0.0 events
   app.get(
     '/payu/:event([a-z0-9-]{1,60})/:user(0x[a-fA-F0-9]{40})',
     async (req, res, next) => {
@@ -300,6 +301,7 @@ dbClient.connect((error) => {
     res.json(eventFilter[0]);
   });
 
+  // only used for pre-v2.0.0 events
   app.get('/event/:url([a-z0-9-]{1,60})/attendees', async (req, res, next) => {
     try {
       const { url } = req.params;
@@ -436,7 +438,6 @@ dbClient.connect((error) => {
       console.error(organizer);
       return;
     }
-    const attendees = [];
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const event = {
       address,
@@ -450,7 +451,6 @@ dbClient.connect((error) => {
       afterEnd: afterEndDate,
       organizer,
       signature,
-      attendees,
       creation: creationDate,
       ip,
     }
@@ -463,80 +463,7 @@ dbClient.connect((error) => {
     }
   } catch (err) { handleError(err, next); }});
 
-  app.post('/attend', async (req, res, next) => { try {
-    const params = Object.keys(req.body);
-    if (
-      !params.includes('attendee')
-        || !params.includes('event')
-        || !params.includes('signature')
-    ) {
-      res.status(400).json('wrong param names');
-      console.error(params);
-      return;
-    }
-    const { attendee, event, signature } = req.body;
-    if (
-      !web3.utils.isAddress(attendee)
-        || event === ''
-        || !/^0x[0-9a-f]+$/.test(signature)
-    ) {
-      res.status(400).json('wrong param values');
-      console.error(req.body);
-    }
-    const object = { attendee, event };
-    const payload = JSON.stringify(object);
-    const hex = web3.utils.utf8ToHex(payload);
-    let signer;
-    try {
-      signer = web3.eth.accounts.recover(hex, signature);
-    } catch (err) {
-      res.status(401).json('malformed signature');
-      console.error(object, signature);
-      return;
-    }
-    if (signer !== attendee) {
-      res.status(401).json('wrong signature');
-      console.error(attendee, signer);
-      return;
-    }
-    const attendeeCount = await users.countDocuments({address: attendee});
-    if (attendeeCount === 0) {
-      res.status(400).json('attendee unregistered');
-      console.error(attendee);
-      return;
-    }
-    const eventFilter = await events.find({url: event}).toArray();
-    if (eventFilter.length === 0) {
-      res.status(400).json('this event doesn\'t exist');
-      console.error(event);
-      return;
-    }
-    const eventObject = eventFilter[0];
-    if (eventObject.feeWei != 0) {
-      throw new HttpError(400, PAID_EVENT);
-    }
-    const now = new Date();
-    if (now > eventObject.afterEnd) {
-      res.status(400).json('the event already finished');
-      console.error(eventObject);
-      return;
-    }
-    if (!eventObject.attendees.includes(attendee)) {
-      const effect = await events.updateOne({url: event}, {
-        $push: {attendees: attendee}
-      });
-      if (effect.result.ok && effect.modifiedCount === 1) {
-        res.status(201).json('');
-        return;
-      } else {
-        res.status(500).end();
-        console.error(effect);
-        return;
-      }
-    }
-    res.end();
-  } catch (err) { handleError(err, next) }});
-
+  // only for pre-v2.0.0 events
   app.get('/assessments/:event([a-z0-9-]{1,60})', async (req, res) => {
     const { event } = req.params;
     const eventCount = await events.countDocuments({ url: event });
@@ -548,6 +475,7 @@ dbClient.connect((error) => {
     res.json(assessmentFilter);
   });
 
+  // only for pre-v2.0.0 events
   app.get(
     '/assessment/:event([a-z0-9-]{1,60})/:sender(0x[a-fA-F0-9]{40})',
     async (req, res) => {
@@ -568,6 +496,7 @@ dbClient.connect((error) => {
     }
   );
 
+  // TODO: update for v2.0.0 events
   app.post('/assessments', async (req, res) => {
     const params = Object.keys(req.body);
     if (
@@ -619,11 +548,11 @@ dbClient.connect((error) => {
       return;
     }
     const eventObject = eventFilter[0];
-    if (!eventObject.attendees.includes(sender)) {
-      res.status(400).json('sender not attending event');
-      console.error(eventObject.attendees, sender);
-      return;
-    }
+    // if (!eventObject.attendees.includes(sender)) {
+    //   res.status(400).json('sender not attending event');
+    //   console.error(eventObject.attendees, sender);
+    //   return;
+    // }
     const addresses = Object.keys(assessment);
     for (const i in addresses) {
       if (!web3.utils.isAddress(addresses[i])) {
@@ -636,11 +565,11 @@ dbClient.connect((error) => {
         console.error(addresses[i]);
         return;
       }
-      if (!eventObject.attendees.includes(addresses[i])) {
-        res.status(400).json('address not attending');
-        console.error(eventObject.attendees, addresses[i]);
-        return;
-      }
+      // if (!eventObject.attendees.includes(addresses[i])) {
+      //   res.status(400).json('address not attending');
+      //   console.error(eventObject.attendees, addresses[i]);
+      //   return;
+      // }
     }
     const claps = Object.values(assessment);
     let totalClaps = 0;
@@ -656,11 +585,11 @@ dbClient.connect((error) => {
       }
       totalClaps += claps[i];
     }
-    if (totalClaps > (eventObject.attendees.length - 1) * 3) {
-      res.status(400).json('maximum number of claps exceeded');
-      console.error(totalClaps);
-      return;
-    }
+    // if (totalClaps > (eventObject.attendees.length - 1) * 3) {
+    //   res.status(400).json('maximum number of claps exceeded');
+    //   console.error(totalClaps);
+    //   return;
+    // }
     const now = new Date();
     if (now < eventObject.beforeStart) {
       res.status(400).json('the event hasn\'t started');

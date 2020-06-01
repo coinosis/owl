@@ -443,7 +443,7 @@ dbClient.connect((error) => {
       name,
       url,
       description,
-      feeWei: feeAmount,
+      feeWei,
       start: startDate,
       end: endDate,
       beforeStart: beforeStartDate,

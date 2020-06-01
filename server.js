@@ -397,7 +397,7 @@ dbClient.connect((error) => {
     }
     const addressCount = await events.countDocuments({address});
     if (addressCount !== 0) {
-      throw new HttpError(400, 'address already exists');
+      throw new HttpError(400, ADDRESS_EXISTS);
     }
     const nameCount = await events.countDocuments({name});
     if (nameCount !== 0) {
@@ -631,6 +631,7 @@ const USER_NONEXISTENT = 'user-nonexistent';
 const PAID_EVENT = 'paid-event';
 const SERVICE_UNAVAILABLE = 'service-unavailable';
 const NOT_FOUND = 'not-found';
+const ADDRESS_EXISTS = 'address-exists';
 
 const isNumber = value => !isNaN(value);
 const isString = value => value !== '';

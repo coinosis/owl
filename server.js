@@ -301,19 +301,20 @@ dbClient.connect((error) => {
     res.json(eventFilter[0]);
   });
 
-  app.get('/event/:url([a-z0-9-]{1,60})/attendees', async (req, res) => {
-    const { url } = req.params;
-    const eventFilter = await events.find({url}).toArray();
-    if (!eventFilter.length) {
-      res.status(404).json('event not found');
-      return;
-    }
-    const attendeeAddresses = eventFilter[0].attendees;
-    const userFilter = await users
-          .find({address: { $in: attendeeAddresses}})
-          .toArray();
-    const sortedUsers = userFilter.sort((a, b) => a.name.localeCompare(b.name));
-    res.json(sortedUsers);
+  app.get('/event/:url([a-z0-9-]{1,60})/attendees', async (req, res, next) => {
+    try {
+      const { url } = req.params;
+      const event = await events.findOne({ url });
+      if (!event) {
+        throw new HttpError(404, NOT_FOUND);
+      }
+      const { attendees } = event;
+      const userList = await users
+            .find({ address: { $in: attendees }})
+            .toArray();
+      const sortedUsers = userList.sort((a, b) => a.name.localeCompare(b.name));
+      res.json(sortedUsers);
+    } catch (err) { handleError(err, next); }
   });
 
   app.post('/events', async (req, res, next) => { try {
@@ -701,6 +702,7 @@ const WRONG_PARAM_VALUES = 'wrong-param-values';
 const USER_NONEXISTENT = 'user-nonexistent';
 const PAID_EVENT = 'paid-event';
 const SERVICE_UNAVAILABLE = 'service-unavailable';
+const NOT_FOUND = 'not-found';
 
 const isNumber = value => !isNaN(value);
 const isString = value => value !== '';

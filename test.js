@@ -1,13 +1,10 @@
 const chai = require('chai');
 const assert = chai.assert;
 const fetch = require('node-fetch');
-const Web3EthAccounts = require('web3-eth-accounts');
-const utils = require('web3-utils');
+const Web3 = require('web3');
 
 const url = 'http://localhost:5678';
-const infuraKey = '58a2b59a8caa4c2e9834f8c3dd228b06';
-const infuraUrl = `https://mainnet.infura.io/v3/${infuraKey}`;
-const accounts = new Web3EthAccounts(infuraUrl);
+const web3 = new Web3();
 const privateKey =
       'f08e62226ba4b59642fc7fb373c37991a08cb7bb4ec41287308616ca0758675f';
 const fakePrivateKey = privateKey.replace('f', 'd');
@@ -50,8 +47,8 @@ const post = async (endpoint, object, privateKey) => {
   let signedObject = object;
   if (privateKey) {
     const payload = JSON.stringify(object);
-    const hex = utils.utf8ToHex(payload);
-    const result = accounts.sign(hex, privateKey);
+    const hex = web3.utils.utf8ToHex(payload);
+    const result = web3.eth.accounts.sign(hex, privateKey);
     const { signature } = result;
     signedObject = { signature, ...object };
   }
@@ -184,8 +181,8 @@ describe('PUT /user/:address', () => {
       email: 'hola@ejemplo.com',
     };
     const payload = JSON.stringify(object);
-    const hexPayload = utils.utf8ToHex(payload);
-    const { signature } = accounts.sign(hexPayload, privateKey);
+    const hexPayload = web3.utils.utf8ToHex(payload);
+    const { signature } = web3.eth.accounts.sign(hexPayload, privateKey);
     object.signature = signature;
     const options = {
       method: 'put',

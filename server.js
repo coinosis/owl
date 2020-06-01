@@ -1,16 +1,16 @@
 const express = require('express');
 const MongoClient = require('mongodb').MongoClient;
 const cors = require('cors');
-const Web3EthAccounts = require('web3-eth-accounts');
-const utils = require('web3-utils');
+const Web3 = require('web3');
 const fetch = require('node-fetch');
 const settings = require('./settings.json');
 const crypto = require('crypto');
 
-const environment = process.env.ENVIRONMENT || 'testing';
+const environment = process.env.ENVIRONMENT || 'development';
 const environmentId = settings[environment].id;
 const payUReports = settings[environment].payUReports;
 const etherscanKey = settings[environment].etherscanKey;
+const web3Provider = settings[environment].web3Provider;
 const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
 const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
 const port = process.env.PORT || 3000;
@@ -25,9 +25,8 @@ const ETHPrice = `${etherscanAPI}?module=stats&action=ethprice`
       + `&apiKey=${etherscanKey}`;
 const gasTracker = `${etherscanAPI}?module=gastracker&action=gasoracle`
       + `&apiKey=${etherscanKey}`;
-const infuraURI =
-      'wss://mainnet.infura.io/ws/v3/58a2b59a8caa4c2e9834f8c3dd228b06';
-const accounts = new Web3EthAccounts(infuraURI);
+
+const web3 = new Web3(web3Provider);
 
 const app = express();
 app.use(express.json());
@@ -241,7 +240,7 @@ dbClient.connect((error) => {
     const { name, address, signature } = req.body;
     if (
       name === ''
-        || !utils.isAddress(address)
+        || !web3.utils.isAddress(address)
         || signature === ''
     ) {
       res.status(400).json('wrong param formats');
@@ -249,10 +248,10 @@ dbClient.connect((error) => {
       return;
     }
     const payload = JSON.stringify({address, name});
-    const hex = utils.utf8ToHex(payload);
+    const hex = web3.utils.utf8ToHex(payload);
     let signer;
     try {
-      signer = accounts.recover(hex, signature);
+      signer = web3.eth.accounts.recover(hex, signature);
     } catch (err) {
       res.status(400).json('malformed signature');
       console.error(err.message);
@@ -360,7 +359,7 @@ dbClient.connect((error) => {
         || isNaN(new Date(end).getTime())
         || isNaN(new Date(beforeStart).getTime())
         || isNaN(new Date(afterEnd).getTime())
-        || !utils.isAddress(organizer)
+        || !web3.utils.isAddress(organizer)
         || !/^0x[0-9a-f]+$/.test(signature)
     ) {
       res.status(400).json('wrong param values');
@@ -380,10 +379,10 @@ dbClient.connect((error) => {
       organizer,
     };
     const payload = JSON.stringify(object);
-    const hex = utils.utf8ToHex(payload);
+    const hex = web3.utils.utf8ToHex(payload);
     let signer;
     try {
-      signer = accounts.recover(hex, signature);
+      signer = web3.eth.accounts.recover(hex, signature);
     } catch (err) {
       res.status(401).json('malformed signature');
       console.error(object, signature);
@@ -477,7 +476,7 @@ dbClient.connect((error) => {
     }
     const { attendee, event, signature } = req.body;
     if (
-      !utils.isAddress(attendee)
+      !web3.utils.isAddress(attendee)
         || event === ''
         || !/^0x[0-9a-f]+$/.test(signature)
     ) {
@@ -486,10 +485,10 @@ dbClient.connect((error) => {
     }
     const object = { attendee, event };
     const payload = JSON.stringify(object);
-    const hex = utils.utf8ToHex(payload);
+    const hex = web3.utils.utf8ToHex(payload);
     let signer;
     try {
-      signer = accounts.recover(hex, signature);
+      signer = web3.eth.accounts.recover(hex, signature);
     } catch (err) {
       res.status(401).json('malformed signature');
       console.error(object, signature);
@@ -584,7 +583,7 @@ dbClient.connect((error) => {
     const { event, sender, assessment, signature } = req.body;
     if (
       !/^[a-z0-9-]{1,60}$/.test(event)
-        || !utils.isAddress(sender)
+        || !web3.utils.isAddress(sender)
         || typeof assessment !== 'object'
         || !/^0x[0-9a-f]+$/.test(signature)
     ) {
@@ -593,10 +592,10 @@ dbClient.connect((error) => {
       return;
     }
     const payload = JSON.stringify({event, sender, assessment});
-    const hex = utils.utf8ToHex(payload);
+    const hex = web3.utils.utf8ToHex(payload);
     let signer;
     try {
-      signer = accounts.recover(hex, signature);
+      signer = web3.eth.accounts.recover(hex, signature);
     } catch (err) {
       res.status(401).json('malformed signature');
       console.error(err.message);
@@ -627,7 +626,7 @@ dbClient.connect((error) => {
     }
     const addresses = Object.keys(assessment);
     for (const i in addresses) {
-      if (!utils.isAddress(addresses[i])) {
+      if (!web3.utils.isAddress(addresses[i])) {
         res.status(400).json('this is not an address');
         console.error(addresses[i]);
         return;
@@ -723,10 +722,10 @@ const checkSignature = async (expectedSigner, req) => {
     throw new HttpError(401, MALFORMED_SIGNATURE);
   }
   const payload = JSON.stringify(object);
-  const hexPayload = utils.utf8ToHex(payload);
+  const hexPayload = web3.utils.utf8ToHex(payload);
   let actualSigner;
   try {
-    actualSigner = accounts.recover(hexPayload, signature);
+    actualSigner = web3.eth.accounts.recover(hexPayload, signature);
   } catch (err) {
     throw new HttpError(401, MALFORMED_SIGNATURE);
   }

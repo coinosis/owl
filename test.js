@@ -60,12 +60,9 @@ const post = async (endpoint, object, privateKey) => {
 }
 
 describe('GET /', () => {
-  it('version is correct', async () => {
+  it('server is up', async () => {
     const response = await fetch(`${url}/`);
     assert.ok(response.ok);
-    const data = await response.json();
-    assert.ok('version' in data);
-    assert.equal('1.0.0', data.version);
   });
 });
 

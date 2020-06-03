@@ -33,7 +33,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 const dbClient = new MongoClient(dbUrl, { useUnifiedTopology: true });
-const version = '1.0.0';
 
 dbClient.connect((error) => {
   if(error) {
@@ -47,7 +46,7 @@ dbClient.connect((error) => {
   const payments = db.collection('payments');
 
   app.get('/', (req, res) => {
-    res.json({version});
+    res.end();
   });
 
   app.get('/eth/price', async (req, res, next) => { try {
@@ -439,6 +438,7 @@ dbClient.connect((error) => {
       return;
     }
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const version = 2;
     const event = {
       address,
       name,
@@ -453,6 +453,7 @@ dbClient.connect((error) => {
       signature,
       creation: creationDate,
       ip,
+      version,
     }
     const effect = await events.insertOne(event);
     if (effect.result.ok && effect.ops.length) {

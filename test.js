@@ -36,7 +36,6 @@ const verifyUser = data => {
     'name' in data
       && 'address' in data
       && 'date' in data
-      && 'ip' in data
       && 'signature' in data
   );
   assert.equal(address, data.address);
@@ -169,7 +168,6 @@ describe('GET /users', () => {
         'name' in data[i]
           && 'address' in data[i]
           && 'date' in data[i]
-          && 'ip' in data[i]
       );
     }
   });
@@ -233,7 +231,7 @@ const verifyEvent = (data, event) => {
       assert.equal(data[field], event[field]);
     }
   }
-  const newFields = ['signature', 'creation', 'ip'];
+  const newFields = ['signature', 'creation'];
   assert.ok(newFields.every(field => field in data));
   assert.closeTo(
     new Date(data.creation).getTime(),
@@ -329,7 +327,6 @@ const verifyAssessment = (data, date) => {
       && 'sender' in data
       && 'assessment' in data
       && 'date' in data
-      && 'ip' in data
       && 'signature' in data
   );
   assert.equal(event.url, data.event);

@@ -274,9 +274,8 @@ dbClient.connect((error) => {
       console.error(addressCount);
       return;
     }
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const date = new Date().toLocaleString('es-CO', dateOptions);
-    const effect = await users.insertOne({name, address, date, ip, signature});
+    const effect = await users.insertOne({name, address, date, signature});
     if (effect.result.ok && effect.ops.length) {
       res.status(201).json(effect.ops[0]);
     } else {
@@ -437,7 +436,6 @@ dbClient.connect((error) => {
       console.error(organizer);
       return;
     }
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const version = 2;
     const event = {
       address,
@@ -452,7 +450,6 @@ dbClient.connect((error) => {
       organizer,
       signature,
       creation: creationDate,
-      ip,
       version,
     }
     const effect = await events.insertOne(event);
@@ -599,7 +596,6 @@ dbClient.connect((error) => {
     }
     const object = req.body;
     object.date = now;
-    object.ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const effect = await assessments.insertOne(object);
     if (effect.result.ok && effect.ops.length) {
       res.status(201).json(effect.ops[0]);

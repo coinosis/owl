@@ -31,6 +31,19 @@ const privateKeys = [
 ];
 const claps = [2, 4, 3];
 
+const MALFORMED_SIGNATURE = 'malformed-signature';
+const UNAUTHORIZED = 'unauthorized';
+const INSUFFICIENT_PARAMS = 'insufficient-params';
+const WRONG_PARAM_VALUES = 'wrong-param-values';
+const USER_NONEXISTENT = 'user-nonexistent';
+const PAID_EVENT = 'paid-event';
+const SERVICE_UNAVAILABLE = 'service-unavailable';
+const NOT_FOUND = 'not-found';
+const ADDRESS_EXISTS = 'address-exists';
+const DISTRIBUTION_EXISTS = 'distribution-exists';
+const EVENT_NONEXISTENT = 'event-nonexistent';
+const DISTRIBUTION_NONEXISTENT = 'distribution-nonexistent';
+
 const verifyUser = data => {
   assert.ok(
     'name' in data
@@ -315,6 +328,50 @@ describe('GET /event/:eventURL', () => {
     assert.ok(response.ok, response.status);
     const data = await response.json();
     verifyEvent(data, event);
+  });
+});
+
+describe('PUT /distribution/event', () => {
+  it('succeeds', async () => {
+    const response = await fetch(
+      `${url}/distribution/${event.url}`,
+      { method: 'put' }
+    );
+    assert.ok(response.ok, response.status);
+  });
+  it('fails with distribution exists', async () => {
+    const response = await fetch(
+      `${url}/distribution/${event.url}`,
+      { method: 'put' }
+    );
+    assert.isNotOk(response.ok, response.status);
+    const message = await response.json();
+    assert.equal(message, DISTRIBUTION_EXISTS);
+  });
+  it('fails with event nonexistent', async () => {
+    const response = await fetch(
+      `${url}/distribution/blah`,
+      { method: 'put' }
+    );
+    assert.isNotOk(response.ok, response.status);
+    const message = await response.json();
+    assert.equal(message, EVENT_NONEXISTENT);
+  });
+});
+
+describe('GET /distribution/event', () => {
+  it('succeeds', async () => {
+    const response = await fetch(`${url}/distribution/${event.url}`);
+    assert.ok(response.ok);
+    const data = await response.json();
+    assert.equal(3, Object.keys(data).length);
+    assert.ok(!isNaN(data.ethPrice));
+  });
+  it('fails with distribution nonexistent', async () => {
+    const response = await fetch(`${url}/distribution/blah`);
+    assert.isNotOk(response.ok);
+    const data = await response.json();
+    assert.equal(DISTRIBUTION_NONEXISTENT, data);
   });
 });
 

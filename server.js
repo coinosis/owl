@@ -44,12 +44,13 @@ dbClient.connect((error) => {
   const events = db.collection('events');
   const assessments = db.collection('assessments');
   const payments = db.collection('payments');
+  const distributions = db.collection('distributions');
 
   app.get('/', (req, res) => {
     res.end();
   });
 
-  app.get('/eth/price', async (req, res, next) => { try {
+  const getEthPrice = async () => {
     const response = await fetch(ETHPrice);
     if (!response.ok) {
       throw new HttpError(500, SERVICE_UNAVAILABLE);
@@ -59,6 +60,11 @@ dbClient.connect((error) => {
       throw new HttpError(500, SERVICE_UNAVAILABLE);
     }
     const price = data.result.ethusd;
+    return price;
+  }
+
+  app.get('/eth/price', async (req, res, next) => { try {
+    const price = await getEthPrice();
     res.json(price);
   } catch (err) { handleError(err, next) }});
 
@@ -314,6 +320,28 @@ dbClient.connect((error) => {
       const sortedUsers = userList.sort((a, b) => a.name.localeCompare(b.name));
       res.json(sortedUsers);
     } catch (err) { handleError(err, next); }
+  });
+
+  app.get('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
+    try {
+      const { event } = req.params;
+      const distribution = await distributions.findOne({ event });
+      if (!distribution) throw new HttpError(404, DISTRIBUTION_NONEXISTENT);
+      res.json(distribution);
+    } catch (err) { handleError(err, next) }
+  });
+
+  app.put('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
+    try {
+      const { event } = req.params;
+      const eventCount = await events.countDocuments({ url: event });
+      if (eventCount == 0) throw new HttpError(404, EVENT_NONEXISTENT);
+      const distributionCount = await distributions.countDocuments({ event });
+      if (distributionCount != 0) throw new HttpError(400, DISTRIBUTION_EXISTS);
+      const ethPrice = await getEthPrice();
+      distributions.insertOne({ event, ethPrice });
+      res.status(201).end();
+    } catch (err) { handleError(err, next) }
   });
 
   app.post('/events', async (req, res, next) => { try {
@@ -629,6 +657,9 @@ const PAID_EVENT = 'paid-event';
 const SERVICE_UNAVAILABLE = 'service-unavailable';
 const NOT_FOUND = 'not-found';
 const ADDRESS_EXISTS = 'address-exists';
+const DISTRIBUTION_EXISTS = 'distribution-exists';
+const EVENT_NONEXISTENT = 'event-nonexistent';
+const DISTRIBUTION_NONEXISTENT = 'distribution-nonexistent';
 
 const isNumber = value => !isNaN(value);
 const isString = value => value !== '';

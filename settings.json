@@ -3,18 +3,18 @@
     "id": "development",
     "payUReports": "https://sandbox.api.payulatam.com/reports-api/4.0/service.cgi",
     "etherscanKey": "2RU78DJDPVG9G2VK3AHE8QVTAN65CP9MBI",
-    "web3Provider": "http://localhost:1337"
+    "web3Provider": "http://localhost:8545"
   },
   "testing": {
     "id": "testing",
     "payUReports": "https://api.payulatam.com/reports-api/4.0/service.cgi",
     "etherscanKey": "K33HJVG46X7392MMEVXXYCFERNVK77I13T",
-    "web3Provider": "wss://ropsten.infura.io/ws/v3/58a2b59a8caa4c2e9834f8c3dd228b06"
+    "web3Provider": "https://ropsten.infura.io/v3/58a2b59a8caa4c2e9834f8c3dd228b06"
   },
   "production": {
     "id": "",
     "payUReports": "https://api.payulatam.com/reports-api/4.0/service.cgi",
     "etherscanKey": "NAVRNVJWI4D72RX8Z5C5FAHZ8BCNC1DCVN",
-    "web3Provider": "wss://mainnet.infura.io/ws/v3/58a2b59a8caa4c2e9834f8c3dd228b06"
+    "web3Provider": "https://mainnet.infura.io/v3/58a2b59a8caa4c2e9834f8c3dd228b06"
   }
 }

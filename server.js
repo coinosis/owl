@@ -50,7 +50,7 @@ dbClient.connect((error) => {
     res.end();
   });
 
-  const getEthPrice = async () => {
+  const getETHPrice = async () => {
     const response = await fetch(ETHPrice);
     if (!response.ok) {
       throw new HttpError(500, SERVICE_UNAVAILABLE);
@@ -64,7 +64,7 @@ dbClient.connect((error) => {
   }
 
   app.get('/eth/price', async (req, res, next) => { try {
-    const price = await getEthPrice();
+    const price = await getETHPrice();
     res.json(price);
   } catch (err) { handleError(err, next) }});
 
@@ -338,7 +338,7 @@ dbClient.connect((error) => {
       if (eventCount == 0) throw new HttpError(404, EVENT_NONEXISTENT);
       const distributionCount = await distributions.countDocuments({ event });
       if (distributionCount != 0) throw new HttpError(400, DISTRIBUTION_EXISTS);
-      const ethPrice = await getEthPrice();
+      const ethPrice = await getETHPrice();
       distributions.insertOne({ event, ethPrice });
       res.status(201).end();
     } catch (err) { handleError(err, next) }

@@ -64,12 +64,7 @@ dbClient.connect((error) => {
     return price;
   }
 
-  app.get('/eth/price', async (req, res, next) => { try {
-    const price = await getETHPrice();
-    res.json(price);
-  } catch (err) { handleError(err, next) }});
-
-  app.get('/eth/gas', async (req, res, next) => { try {
+  const getGasPrice = async () => {
     const response = await fetch(gasTracker);
     if (!response.ok) {
       throw new HttpError(500, SERVICE_UNAVAILABLE);
@@ -79,7 +74,17 @@ dbClient.connect((error) => {
       throw new HttpError(500, SERVICE_UNAVAILABLE);
     }
     const { SafeGasPrice, ProposeGasPrice } = data.result;
-    res.json({safe: SafeGasPrice, propose: ProposeGasPrice});
+    return {safe: SafeGasPrice, propose: ProposeGasPrice};
+  }
+
+  app.get('/eth/price', async (req, res, next) => { try {
+    const price = await getETHPrice();
+    res.json(price);
+  } catch (err) { handleError(err, next) }});
+
+  app.get('/eth/gas', async (req, res, next) => { try {
+    const price = await getGasPrice();
+    res.json(price);
   } catch (err) { handleError(err, next) }});
 
   app.post('/payu', (req, res) => {

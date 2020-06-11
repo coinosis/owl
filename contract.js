@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 const Web3 = require('web3');
 const EthereumTx = require('ethereumjs-tx').Transaction;
-const contractJson = require('./contracts/Event.json');
+const contractJson = require('./contracts/ProxyEvent.json');
 const settings = require('./settings.json');
 
 const privateKeyString = process.env.PRIVATE_KEY;
@@ -28,18 +28,40 @@ const chains = {
   },
 };
 
-const register = async (contractAddress, feeWei, gasPrice) => {
+const registerFor = async (contractAddress, attendee, feeWei, gasPrice) => {
+
+  const contract = new web3.eth.Contract(contractJson.abi, contractAddress);
+  const data = contract.methods.registerFor(attendee).encodeABI();
+  const result = await sendRawTx({ to: contractAddress, value: feeWei, data, gasPrice });
+  return result;
+
+}
+
+const clapFor = async (
+  contractAddress,
+  clapper,
+  attendees,
+  claps,
+  gasPrice
+) => {
+
+  const contract = new web3.eth.Contract(contractJson.abi, contractAddress);
+  const data = contract.methods.clapFor(clapper, attendees, claps).encodeABI();
+  const result = await sendRawTx({ to: contractAddress, value: 0, data, gasPrice });
+  return result;
+
+}
+
+const sendRawTx = async ({ to, value, data, gasPrice }) => {
 
   const nonce = await web3.eth.getTransactionCount(account);
-  const contract = new web3.eth.Contract(contractJson.abi, contractAddress);
-  const data = contract.methods.register().encodeABI();
 
   const txParams = {
     nonce: web3.utils.toHex(nonce),
     gasPrice: web3.utils.toHex(gasPrice),
     gasLimit: web3.utils.toHex(110000),
-    to: contractAddress,
-    value: web3.utils.toHex(feeWei),
+    to,
+    value: web3.utils.toHex(value),
     data,
   };
 
@@ -66,16 +88,30 @@ const register = async (contractAddress, feeWei, gasPrice) => {
     body
   };
 
-  fetch(provider, options).then(response => {
-    response.json().then(data => {
-      console.log(data);
-    });
-  });
+  const response = await fetch(provider, options);
+  const result = await response.json();
+  return result;
 }
 
-const contractAddress = '0x405C659F05074cb9b87C98031e18e9Ac5F676d65';
-const feeWei = '800000000000000000';
-const gasPrice = '50000000000';
-register(contractAddress, feeWei, gasPrice);
+const main = async () => {
+  const contractAddress = '0x68aEF7a46577eaBba909aAc70E79BCBe1e186146';
+  const attendees = [
+    '0x44F14099B8b9C60515E83a0cB1a85E14982BB091',
+    '0xbD0FdA31473461b21CB7d723e70B3b5C1C9cb251',
+    '0x0f494B8cB38642C376E605D64A7227caC6431aFc',
+  ];
+  const feeWei = '3333';
+  const gasPrice = '50000000000';
+  console.log(await registerFor(contractAddress, attendees[0], feeWei, gasPrice));
+  console.log(await registerFor(contractAddress, attendees[1], feeWei, gasPrice));
+  console.log(await registerFor(contractAddress, attendees[2], feeWei, gasPrice));
 
-// module.exports = { register };
+  const clapper = attendees[0];
+  const claps = [ 0, 6, 4 ];
+  console.log(await clapFor(contractAddress, clapper, attendees, claps, gasPrice));
+
+}
+
+main();
+
+// module.exports = { registerFor, clapFor };

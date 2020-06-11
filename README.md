@@ -3,7 +3,7 @@
 * [mongodb](https://docs.mongodb.com/manual/administration/install-community/)
 * [heroku CLI](https://devcenter.heroku.com/articles/heroku-cli#download-and-install)
 
-## install & run on a dev environment
+## install
 
 ```bash
 
@@ -12,10 +12,20 @@ cd owl
 npm i
 mkdir db
 npm i -g nodemon
-npm run start:dev
-scripts/initialize.sh
 
 ```
+
+## run
+
+* Store the private key in owl/.privateKey4
+
+```bash
+
+npm run start:dev
+
+```
+
+If running for the first time, run `scripts/initialize.sh`.
 
 ## Submit your changes
 
@@ -29,9 +39,7 @@ scripts/initialize.sh
 
 $ mongo coinosis
 > users = db.getCollection('users')
-> assessments = db.getCollection('assessments')
 > users.find()
-> assessments.find()
 
 ```
 

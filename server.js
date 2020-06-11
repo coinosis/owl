@@ -5,6 +5,7 @@ const Web3 = require('web3');
 const fetch = require('node-fetch');
 const settings = require('./settings.json');
 const crypto = require('crypto');
+const { registerFor, clapFor } = require('./contract.js');
 
 const environment = process.env.ENVIRONMENT || 'development';
 const environmentId = settings[environment].id;

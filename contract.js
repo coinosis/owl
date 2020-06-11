@@ -112,6 +112,6 @@ const main = async () => {
 
 }
 
-main();
+// main();
 
-// module.exports = { registerFor, clapFor };
+module.exports = { registerFor, clapFor };

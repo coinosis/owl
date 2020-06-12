@@ -17,7 +17,7 @@ npm i -g nodemon
 
 ## run
 
-* Store the private key in owl/.privateKey4
+* Store the private key in owl/.privateKey
 
 ```bash
 

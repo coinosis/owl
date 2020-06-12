@@ -88,6 +88,7 @@ dbClient.connect((error) => {
   } catch (err) { handleError(err, next) }});
 
   app.post('/payu', (req, res) => {
+    delete req.headers['http.useragent'];
     payments.insertOne({
       body: req.body,
       metadata: {
@@ -97,7 +98,7 @@ dbClient.connect((error) => {
       },
       headers: req.headers,
     });
-    res.json('');
+    res.status(201).end();
   });
 
   // TODO: update for v2.0.0 events

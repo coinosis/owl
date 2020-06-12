@@ -31,8 +31,15 @@ const chains = {
 const registerFor = async (contractAddress, attendee, feeWei, gasPrice) => {
 
   const contract = new web3.eth.Contract(contractJson.abi, contractAddress);
-  const data = contract.methods.registerFor(attendee).encodeABI();
-  const result = await sendRawTx({ to: contractAddress, value: feeWei, data, gasPrice });
+  const attendees = await contract.methods.getAttendees().call();
+  if (attendees.includes(attendee)) return true;
+  const tx = {
+    to: contractAddress,
+    value: feeWei,
+    data: contract.methods.registerFor(attendee).encodeABI(),
+    gasPrice,
+  };
+  const result = await sendRawTx(tx);
   return result;
 
 }
@@ -46,8 +53,13 @@ const clapFor = async (
 ) => {
 
   const contract = new web3.eth.Contract(contractJson.abi, contractAddress);
-  const data = contract.methods.clapFor(clapper, attendees, claps).encodeABI();
-  const result = await sendRawTx({ to: contractAddress, value: 0, data, gasPrice });
+  const tx = {
+    to: contractAddress,
+    value: 0,
+    data: contract.methods.clapFor(clapper, attendees, claps).encodeABI(),
+    gasPrice,
+  };
+  const result = await sendRawTx(tx);
   return result;
 
 }

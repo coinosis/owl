@@ -121,9 +121,20 @@ dbClient.connect((error) => {
             && pull.currency === 'USD'
             && push.currency === 'USD'
         ) {
+          const ethPrice = await getETHPrice();
+          const gasPrice = await getGasPrice();
           const eventObject = await events.findOne({url: event});
-          if (pull.value == eventObject.fee && push.value == eventObject.fee) {
-            events.updateOne({url: event}, { $addToSet: { attendees: user } });
+          const feeWei = eventObject.feeWei;
+          const feeETH = web3.utils.fromWei(feeWei);
+          const fee = feeETH * ethPrice;
+          const lowestFee = fee * 0.9;
+          if (pull.value >= lowestFee && push.value >= lowestFee) {
+            await registerFor(
+              eventObject.address,
+              user,
+              feeWei,
+              gasPrice.propose
+            );
           }
         }
         const payment = { referenceCode, pull, push };

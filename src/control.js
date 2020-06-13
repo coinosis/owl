@@ -1,4 +1,5 @@
 const { web3 } = require('./web3.js');
+const db = require('./db.js');
 
 const errors = {
   MALFORMED_SIGNATURE: 'malformed-signature',
@@ -6,6 +7,7 @@ const errors = {
   INSUFFICIENT_PARAMS: 'insufficient-params',
   WRONG_PARAM_VALUES: 'wrong-param-values',
   USER_NONEXISTENT: 'user-nonexistent',
+  USER_EXISTS: 'user-exists',
   PAID_EVENT: 'paid-event',
   SERVICE_UNAVAILABLE: 'service-unavailable',
   NOT_FOUND: 'not-found',
@@ -99,8 +101,8 @@ const checkOptionalParams = async (expected, req) => {
   }
 }
 
-const checkUserExists = async (users, address) => {
-  const count = await users.countDocuments({ address });
+const checkUserExists = async address => {
+  const count = await db.users.countDocuments({ address });
   if (count === 0) {
     throw new HttpError(400, errors.USER_NONEXISTENT);
   }

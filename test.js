@@ -115,7 +115,7 @@ describe('POST /users', () => {
     const object = { address, name };
     const response = await post('users', object, fakePrivateKey);
     assert.isNotOk(response.ok);
-    assert.equal(response.status, 401);
+    assert.equal(response.status, 403);
   });
   it('fails due to no signature', async () => {
     const object = { address, name };
@@ -132,7 +132,7 @@ describe('POST /users', () => {
     }
     const response = await fetch(`${url}/users`, options);
     assert.isNotOk(response.ok);
-    assert.equal(response.status, 400);
+    assert.equal(response.status, 401);
   });
   it('fails due to malformed signature of the same size', async () => {
     const object = { address, name, signature: 'h'.repeat(132) };
@@ -143,7 +143,7 @@ describe('POST /users', () => {
     }
     const response = await fetch(`${url}/users`, options);
     assert.isNotOk(response.ok);
-    assert.equal(response.status, 400);
+    assert.equal(response.status, 401);
   });
   it('fails due to empty signature', async () => {
     const object = { address, name, signature: '' };

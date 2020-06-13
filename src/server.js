@@ -20,14 +20,9 @@ const {
 } = require('./db.js');
 const { web3, getETHPrice, getGasPrice } = require('./web3.js');
 const { paymentReceived, getPayments, getHash } = require('./payu.js');
-const { getUsers, } = require('./users.js');
+const { getUsers, getUser, putUser, postUser } = require('./users.js');
 
 const port = process.env.PORT || 3000;
-const dateOptions = {
-  timeZone: 'America/Bogota',
-  dateStyle: 'medium',
-  timeStyle: 'medium'
-};
 
 const app = express();
 app.use(express.json());
@@ -87,96 +82,40 @@ app.post('/payu/hash', async (req, res, next) => {
   }
 });
 
-app.get('/users', async (req, res) => {
-  const users = await getUsers();
-  res.json(users);
-});
-
-app.get('/user/:address(0x[a-fA-F0-9]{40})', async (req, res) => {
-  const query = {address: req.params.address};
-  const userFilter = await users.find(query).toArray();
-  if (!userFilter.length) {
-    res.status(404).json('user not found');
-    return;
-  }
-  res.json(userFilter[0]);
-});
-
-app.put('/user/:address(0x[a-fA-F0-9]{40})', async (req, res, next) => { try {
-  const { address } = req.params;
-  await checkSignature(address, req);
-  const params = {
-    email: isEmail,
-    telegram: isTelegram,
-  };
-  await checkOptionalParams(params, req);
-  await checkUserExists(users, address);
-  const { email, telegram } = req.body;
-  if (email) {
-    const result = await users.updateOne({ address }, { $set: { email }});
-  }
-  if (telegram) {
-    const result = await users.updateOne({ address }, { $set: { telegram }});
-  }
-  const user = await users.findOne({ address });
-  res.json(user);
-} catch (err) { handleError(err, next); }});
-
-app.post('/users', async (req, res) => {
-  const params = Object.keys(req.body);
-  if (
-    !params.includes('name')
-      || !params.includes('address')
-      || !params.includes('signature')
-  ) {
-    res.status(400).json('wrong param names');
-    console.error(params);
-    return;
-  }
-  const { name, address, signature } = req.body;
-  if (
-    name === ''
-      || !web3.utils.isAddress(address)
-      || signature === ''
-  ) {
-    res.status(400).json('wrong param formats');
-    console.error(name, address, signature);
-    return;
-  }
-  const payload = JSON.stringify({address, name});
-  const hex = web3.utils.utf8ToHex(payload);
-  let signer;
+app.get('/users', async (req, res, next) => {
   try {
-    signer = web3.eth.accounts.recover(hex, signature);
+    const users = await getUsers();
+    res.json(users);
   } catch (err) {
-    res.status(400).json('malformed signature');
-    console.error(err.message);
-    return;
+    handleError(err, next);
   }
-  if (signer !== address) {
-    res.status(401).json('bad signature');
-    console.error(payload, signer, signature);
-    return;
+});
+
+app.get('/user/:address(0x[a-fA-F0-9]{40})', async (req, res, next) => {
+  try {
+    const { address } = req.params;
+    const user = await getUser(address);
+    res.json(user);
+  } catch (err) {
+    handleError(err, next);
   }
-  const nameCount = await users.countDocuments({name});
-  if (nameCount > 0) {
-    res.status(400).json('name exists');
-    console.error(nameCount);
-    return;
+});
+
+app.put('/user/:address(0x[a-fA-F0-9]{40})', async (req, res, next) => {
+  try {
+    const user = await putUser(req);
+    res.json(user);
+  } catch (err) {
+    handleError(err, next);
   }
-  const addressCount = await users.countDocuments({address});
-  if (addressCount > 0) {
-    res.status(400).json('address exists');
-    console.error(addressCount);
-    return;
-  }
-  const date = new Date().toLocaleString('es-CO', dateOptions);
-  const effect = await users.insertOne({name, address, date, signature});
-  if (effect.result.ok && effect.ops.length) {
-    res.status(201).json(effect.ops[0]);
-  } else {
-    res.status(500).end();
-    console.error(effect);
+});
+
+app.post('/users', async (req, res, next) => {
+  try {
+    const result = await postUser(req);
+    res.status(201).json(result);
+  } catch (err) {
+    handleError(err, next);
   }
 });
 

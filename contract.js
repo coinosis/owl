@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 const Web3 = require('web3');
 const EthereumTx = require('ethereumjs-tx').Transaction;
 const contractJson = require('./contracts/ProxyEvent.json');
-const settings = require('./settings.json');
+const { web3Provider } = require('./settings.js');
 
 const privateKeyString = process.env.PRIVATE_KEY;
 if (privateKeyString === undefined) throw new Error('Private key not set');
@@ -10,8 +10,7 @@ const environment = process.env.ENVIRONMENT || 'development';
 
 const privateKey = Buffer.from(privateKeyString.substring(2), 'hex');
 const account = '0xe1fF19182deb2058016Ae0627c1E4660A895196a';
-const provider = settings[environment].web3Provider;
-const web3 = new Web3(provider);
+const web3 = new Web3(web3Provider);
 
 const chains = {
   development: {

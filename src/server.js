@@ -21,6 +21,7 @@ const {
 const { web3, getETHPrice, getGasPrice } = require('./web3.js');
 const { paymentReceived, getPayments, getHash } = require('./payu.js');
 const { getUsers, getUser, putUser, postUser } = require('./users.js');
+const { getEvents, getEvent } = require('./events.js');
 
 const port = process.env.PORT || 3000;
 
@@ -119,19 +120,23 @@ app.post('/users', async (req, res, next) => {
   }
 });
 
-app.get('/events', async (req, res) => {
-  const eventList = await events.find().toArray();
-  res.json(eventList);
+app.get('/events', async (req, res, next) => {
+  try {
+    const events = await getEvents();
+    res.json(events);
+  } catch (err) {
+    handleError(err, next);
+  }
 });
 
-app.get('/event/:url([a-z0-9-]{1,60})', async (req, res) => {
-  const { url } = req.params;
-  const eventFilter = await events.find({url}).toArray();
-  if (!eventFilter.length) {
-    res.status(404).json('event not found');
-    return;
+app.get('/event/:url([a-z0-9-]{1,60})', async (req, res, next) => {
+  try {
+    const { url } = req.params;
+    const event = await getEvent(url);
+    res.json(event);
+  } catch (err) {
+    handleError(err, next);
   }
-  res.json(eventFilter[0]);
 });
 
 // only used for pre-v2.0.0 events

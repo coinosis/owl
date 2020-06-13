@@ -9,7 +9,7 @@
     "url": "git+https://github.com/coinosis/owl.git"
   },
   "scripts": {
-    "start": "node ./server.js",
+    "start": "node ./src/server.js",
     "start:dev": "./start.dev.sh",
     "test": "./test.sh"
   },

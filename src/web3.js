@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 const Web3 = require('web3');
 const EthereumTx = require('ethereumjs-tx').Transaction;
-const contractJson = require('./contracts/ProxyEvent.json');
+const contractJson = require('../contracts/ProxyEvent.json');
 const { etherscanKey, web3Provider } = require('./settings.js');
 const { HttpError, errors } = require('./control.js');
 

@@ -2,15 +2,19 @@ const fetch = require('node-fetch');
 const Web3 = require('web3');
 const EthereumTx = require('ethereumjs-tx').Transaction;
 const contractJson = require('./contracts/ProxyEvent.json');
-const { web3Provider } = require('./settings.js');
+const { etherscanKey, web3Provider } = require('./settings.js');
 
 const privateKeyString = process.env.PRIVATE_KEY;
 if (privateKeyString === undefined) throw new Error('Private key not set');
 const environment = process.env.ENVIRONMENT || 'development';
-
 const privateKey = Buffer.from(privateKeyString.substring(2), 'hex');
 const account = '0xe1fF19182deb2058016Ae0627c1E4660A895196a';
 const web3 = new Web3(web3Provider);
+const etherscanAPI = 'https://api.etherscan.io/api';
+const ETHPrice = `${etherscanAPI}?module=stats&action=ethprice`
+      + `&apiKey=${etherscanKey}`;
+const gasTracker = `${etherscanAPI}?module=gastracker&action=gasoracle`
+      + `&apiKey=${etherscanKey}`;
 
 const chains = {
   development: {
@@ -26,6 +30,32 @@ const chains = {
     id: 1,
   },
 };
+
+const getETHPrice = async () => {
+  const response = await fetch(ETHPrice);
+  if (!response.ok) {
+    throw new HttpError(500, errors.SERVICE_UNAVAILABLE);
+  }
+  const data = await response.json();
+  if (data.status !== '1') {
+    throw new HttpError(500, errors.SERVICE_UNAVAILABLE);
+  }
+  const price = data.result.ethusd;
+  return price;
+}
+
+const getGasPrice = async () => {
+  const response = await fetch(gasTracker);
+  if (!response.ok) {
+    throw new HttpError(500, errors.SERVICE_UNAVAILABLE);
+  }
+  const data = await response.json();
+  if (data.status !== '1') {
+    throw new HttpError(500, errors.SERVICE_UNAVAILABLE);
+  }
+  const { SafeGasPrice, ProposeGasPrice } = data.result;
+  return {safe: SafeGasPrice, propose: ProposeGasPrice};
+}
 
 const registerFor = async (contractAddress, attendee, feeWei, gasPrice) => {
 
@@ -125,4 +155,4 @@ const main = async () => {
 
 // main();
 
-module.exports = { registerFor, clapFor };
+module.exports = { web3, getETHPrice, getGasPrice, registerFor, clapFor };

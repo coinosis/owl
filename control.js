@@ -1,4 +1,4 @@
-const { web3 } = require('./eth.js');
+const { web3 } = require('./contract.js');
 
 const errors = {
   MALFORMED_SIGNATURE: 'malformed-signature',

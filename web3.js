@@ -3,6 +3,7 @@ const Web3 = require('web3');
 const EthereumTx = require('ethereumjs-tx').Transaction;
 const contractJson = require('./contracts/ProxyEvent.json');
 const { etherscanKey, web3Provider } = require('./settings.js');
+const { HttpError, errors } = require('./control.js');
 
 const privateKeyString = process.env.PRIVATE_KEY;
 if (privateKeyString === undefined) throw new Error('Private key not set');
@@ -129,7 +130,7 @@ const sendRawTx = async ({ to, value, data, gasPrice }) => {
     body
   };
 
-  const response = await fetch(provider, options);
+  const response = await fetch(web3Provider, options);
   const result = await response.json();
   return result;
 }

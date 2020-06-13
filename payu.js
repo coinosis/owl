@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const db = require('./db.js');
 const { payUReports, environmentId } = require('./settings.js');
 const {
+  HttpError,
+  errors,
   checkParams,
   isNumber,
   isStringLongerThan,
@@ -60,6 +62,10 @@ const pullPayment = async referenceCode => {
   const response = await fetch(payUReports, { body, method, headers });
   if (!response.ok) return null;
   const data = await response.json();
+  if (data.code && data.code === 'ERROR') {
+    console.error(data);
+    throw new HttpError(500, errors.SERVICE_UNAVAILABLE);
+  }
   if (data.result === null || data.result.payload === null) {
     return null;
   }

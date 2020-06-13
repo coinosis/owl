@@ -20,6 +20,7 @@ const {
 } = require('./db.js');
 const { web3, getETHPrice, getGasPrice } = require('./web3.js');
 const { paymentReceived, getPayments, getHash } = require('./payu.js');
+const { getUsers, } = require('./users.js');
 
 const port = process.env.PORT || 3000;
 const dateOptions = {
@@ -87,8 +88,8 @@ app.post('/payu/hash', async (req, res, next) => {
 });
 
 app.get('/users', async (req, res) => {
-  const userList = await users.find().toArray();
-  res.json(userList);
+  const users = await getUsers();
+  res.json(users);
 });
 
 app.get('/user/:address(0x[a-fA-F0-9]{40})', async (req, res) => {

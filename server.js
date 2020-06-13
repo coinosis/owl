@@ -18,7 +18,7 @@ const {
   payments,
   distributions
 } = require('./db.js');
-const { web3, getETHPrice, getGasPrice } = require('./contract.js');
+const { web3, getETHPrice, getGasPrice } = require('./web3.js');
 const { paymentReceived, getPayments, getHash } = require('./payu.js');
 
 const port = process.env.PORT || 3000;

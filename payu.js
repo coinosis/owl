@@ -8,7 +8,7 @@ const {
   isStringLongerThan,
   isCurrencyCode,
 } = require('./control.js');
-const { web3, getETHPrice, getGasPrice, registerFor } = require('./contract.js');
+const { web3, getETHPrice, getGasPrice, registerFor } = require('./web3.js');
 
 const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
 const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';

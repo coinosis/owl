@@ -54,15 +54,23 @@ dbClient.connect((error) => {
     res.end();
   });
 
-  app.get('/eth/price', async (req, res, next) => { try {
-    const price = await getETHPrice();
-    res.json(price);
-  } catch (err) { handleError(err, next) }});
+  app.get('/eth/price', async (req, res, next) => {
+    try {
+      const price = await getETHPrice();
+      res.json(price);
+    } catch (err) {
+      handleError(err, next)
+    }
+  });
 
-  app.get('/eth/gas', async (req, res, next) => { try {
-    const price = await getGasPrice();
-    res.json(price);
-  } catch (err) { handleError(err, next) }});
+  app.get('/eth/gas', async (req, res, next) => {
+    try {
+      const price = await getGasPrice();
+      res.json(price);
+    } catch (err) {
+      handleError(err, next)
+    }
+  });
 
   app.post('/payu', (req, res) => {
     delete req.headers['http.useragent'];

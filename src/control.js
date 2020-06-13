@@ -14,7 +14,10 @@ const errors = {
   ADDRESS_EXISTS: 'address-exists',
   DISTRIBUTION_EXISTS: 'distribution-exists',
   EVENT_NONEXISTENT: 'event-nonexistent',
+  EVENT_EXISTS: 'event-exists',
   DISTRIBUTION_NONEXISTENT: 'distribution-nonexistent',
+  INVALID_FEE: 'invalid-fee',
+  INVALID_DATE: 'invalid-date',
 }
 
 class HttpError extends Error {

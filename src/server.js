@@ -16,12 +16,12 @@ const {
   events,
   assessments,
   payments,
-  distributions
+  distributions,
 } = require('./db.js');
 const { web3, getETHPrice, getGasPrice } = require('./web3.js');
 const { paymentReceived, getPayments, getHash } = require('./payu.js');
 const { getUsers, getUser, putUser, postUser } = require('./users.js');
-const { getEvents, getEvent } = require('./events.js');
+const { getEvents, getEvent, getAttendees, postEvent } = require('./events.js');
 
 const port = process.env.PORT || 3000;
 
@@ -143,17 +143,11 @@ app.get('/event/:url([a-z0-9-]{1,60})', async (req, res, next) => {
 app.get('/event/:url([a-z0-9-]{1,60})/attendees', async (req, res, next) => {
   try {
     const { url } = req.params;
-    const event = await events.findOne({ url });
-    if (!event) {
-      throw new HttpError(404, errors.NOT_FOUND);
-    }
-    const { attendees } = event;
-    const userList = await users
-          .find({ address: { $in: attendees }})
-          .toArray();
-    const sortedUsers = userList.sort((a, b) => a.name.localeCompare(b.name));
-    res.json(sortedUsers);
-  } catch (err) { handleError(err, next); }
+    const attendees = await getAttendees(url);
+    res.json(attendees);
+  } catch (err) {
+    handleError(err, next);
+  }
 });
 
 app.get('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
@@ -180,150 +174,14 @@ app.put('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
   } catch (err) { handleError(err, next) }
 });
 
-app.post('/events', async (req, res, next) => { try {
-  const params = Object.keys(req.body);
-  const expectedParams = [
-    'address',
-    'name',
-    'url',
-    'description',
-    'feeWei',
-    'start',
-    'end',
-    'beforeStart',
-    'afterEnd',
-    'organizer',
-    'signature',
-  ];
-  if(!expectedParams.every(param => params.includes(param))) {
-    res.status(400).json('wrong param names');
-    console.error(params);
-    return;
-  }
-  const {
-    address,
-    name,
-    url,
-    description,
-    feeWei,
-    start,
-    end,
-    beforeStart,
-    afterEnd,
-    organizer,
-    signature,
-  } = req.body;
-  if (
-    !/^0x[0-9a-fA-F]{40}$/.test(address)
-      || name === ''
-      || !/^[a-z1-9-]{1}[a-z0-9-]{0,59}$/.test(url)
-      || description === ''
-      || isNaN(Number(feeWei))
-      || isNaN(new Date(start).getTime())
-      || isNaN(new Date(end).getTime())
-      || isNaN(new Date(beforeStart).getTime())
-      || isNaN(new Date(afterEnd).getTime())
-      || !web3.utils.isAddress(organizer)
-      || !/^0x[0-9a-f]+$/.test(signature)
-  ) {
-    res.status(400).json('wrong param values');
-    console.error(req.body);
-    return;
-  }
-  const object = {
-    address,
-    name,
-    url,
-    description,
-    feeWei,
-    start,
-    end,
-    beforeStart,
-    afterEnd,
-    organizer,
-  };
-  const payload = JSON.stringify(object);
-  const hex = web3.utils.utf8ToHex(payload);
-  let signer;
+app.post('/events', async (req, res, next) => {
   try {
-    signer = web3.eth.accounts.recover(hex, signature);
+    const result = await postEvent(req);
+    res.status(201).json(result);
   } catch (err) {
-    res.status(401).json('malformed signature');
-    console.error(object, signature);
-    return;
+    handleError(err, next);
   }
-  if (signer !== organizer) {
-    res.status(401).json('wrong signature');
-    console.error(organizer, signer);
-    return;
-  }
-  const addressCount = await events.countDocuments({address});
-  if (addressCount !== 0) {
-    throw new HttpError(400, ADDRESS_EXISTS);
-  }
-  const nameCount = await events.countDocuments({name});
-  if (nameCount !== 0) {
-    res.status(400).json('event name already exists');
-    console.error(nameCount, name);
-    return;
-  }
-  const urlCount = await events.countDocuments({url});
-  if (urlCount !== 0) {
-    res.status(400).json('event url already exists');
-    console.error(urlCount, name);
-    return;
-  }
-  const feeAmount = Number(feeWei);
-  if (feeAmount < 0 || feeAmount === Infinity) {
-    res.status(400).json('invalid fee');
-    console.error(feeAmount);
-    return;
-  }
-  const creationDate = new Date();
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-  const beforeStartDate = new Date(beforeStart);
-  const afterEndDate = new Date(afterEnd);
-  if (
-    creationDate > startDate
-      || beforeStartDate > startDate
-      || startDate >= endDate
-      || endDate > afterEndDate
-  ) {
-    res.status(400).json('invalid date values');
-    console.error(beforeStartDate, startDate, endDate, afterEndDate);
-    return;
-  }
-  const userCount = await users.countDocuments({address: organizer});
-  if (userCount === 0) {
-    res.status(400).json('organizer unregistered');
-    console.error(organizer);
-    return;
-  }
-  const version = 2;
-  const event = {
-    address,
-    name,
-    url,
-    description,
-    feeWei,
-    start: startDate,
-    end: endDate,
-    beforeStart: beforeStartDate,
-    afterEnd: afterEndDate,
-    organizer,
-    signature,
-    creation: creationDate,
-    version,
-  }
-  const effect = await events.insertOne(event);
-  if (effect.result.ok && effect.ops.length) {
-    res.status(201).json(effect.ops[0]);
-  } else {
-    res.status(500).end();
-    console.error(effect);
-  }
-} catch (err) { handleError(err, next); }});
+});
 
 // only for pre-v2.0.0 events
 app.get('/assessments/:event([a-z0-9-]{1,60})', async (req, res) => {

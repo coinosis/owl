@@ -1,17 +1,27 @@
 const express = require('express');
 const MongoClient = require('mongodb').MongoClient;
 const cors = require('cors');
-const Web3 = require('web3');
 const fetch = require('node-fetch');
-const settings = require('./settings.json');
 const crypto = require('crypto');
+const settings = require('./settings.js');
+const {
+  HttpError,
+  handleError,
+  errors,
+  checkParams,
+  checkOptionalParams,
+  checkSignature,
+  checkUserExists,
+  isEmail,
+  isTelegram,
+  isNumber,
+  isStringLongerThan,
+  isCurrencyCode,
+} = require('./control.js');
+const { web3, getETHPrice, getGasPrice } = require('./eth.js');
 const { registerFor, clapFor } = require('./contract.js');
 
-const environment = process.env.ENVIRONMENT || 'development';
-const environmentId = settings[environment].id;
-const payUReports = settings[environment].payUReports;
-const etherscanKey = settings[environment].etherscanKey;
-const web3Provider = settings[environment].web3Provider;
+const { environmentId, payUReports } = settings;
 const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
 const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
 const port = process.env.PORT || 3000;
@@ -21,13 +31,6 @@ const dateOptions = {
   dateStyle: 'medium',
   timeStyle: 'medium'
 };
-const etherscanAPI = 'https://api.etherscan.io/api';
-const ETHPrice = `${etherscanAPI}?module=stats&action=ethprice`
-      + `&apiKey=${etherscanKey}`;
-const gasTracker = `${etherscanAPI}?module=gastracker&action=gasoracle`
-      + `&apiKey=${etherscanKey}`;
-
-const web3 = new Web3(web3Provider);
 
 const app = express();
 app.use(express.json());
@@ -50,32 +53,6 @@ dbClient.connect((error) => {
   app.get('/', (req, res) => {
     res.end();
   });
-
-  const getETHPrice = async () => {
-    const response = await fetch(ETHPrice);
-    if (!response.ok) {
-      throw new HttpError(500, SERVICE_UNAVAILABLE);
-    }
-    const data = await response.json();
-    if (data.status !== '1') {
-      throw new HttpError(500, SERVICE_UNAVAILABLE);
-    }
-    const price = data.result.ethusd;
-    return price;
-  }
-
-  const getGasPrice = async () => {
-    const response = await fetch(gasTracker);
-    if (!response.ok) {
-      throw new HttpError(500, SERVICE_UNAVAILABLE);
-    }
-    const data = await response.json();
-    if (data.status !== '1') {
-      throw new HttpError(500, SERVICE_UNAVAILABLE);
-    }
-    const { SafeGasPrice, ProposeGasPrice } = data.result;
-    return {safe: SafeGasPrice, propose: ProposeGasPrice};
-  }
 
   app.get('/eth/price', async (req, res, next) => { try {
     const price = await getETHPrice();
@@ -329,7 +306,7 @@ dbClient.connect((error) => {
       const { url } = req.params;
       const event = await events.findOne({ url });
       if (!event) {
-        throw new HttpError(404, NOT_FOUND);
+        throw new HttpError(404, errors.NOT_FOUND);
       }
       const { attendees } = event;
       const userList = await users
@@ -344,7 +321,8 @@ dbClient.connect((error) => {
     try {
       const { event } = req.params;
       const distribution = await distributions.findOne({ event });
-      if (!distribution) throw new HttpError(404, DISTRIBUTION_NONEXISTENT);
+      if (!distribution)
+        throw new HttpError(404, errors.DISTRIBUTION_NONEXISTENT);
       res.json(distribution);
     } catch (err) { handleError(err, next) }
   });
@@ -353,9 +331,10 @@ dbClient.connect((error) => {
     try {
       const { event } = req.params;
       const eventCount = await events.countDocuments({ url: event });
-      if (eventCount == 0) throw new HttpError(404, EVENT_NONEXISTENT);
+      if (eventCount == 0) throw new HttpError(404, errors.EVENT_NONEXISTENT);
       const distributionCount = await distributions.countDocuments({ event });
-      if (distributionCount != 0) throw new HttpError(400, DISTRIBUTION_EXISTS);
+      if (distributionCount != 0)
+        throw new HttpError(400, errors.DISTRIBUTION_EXISTS);
       const ethPrice = await getETHPrice();
       distributions.insertOne({ event, ethPrice });
       res.status(201).end();
@@ -656,109 +635,5 @@ dbClient.connect((error) => {
   });
 
 });
-
-class HttpError extends Error {
-  constructor(status, code) {
-    super(code);
-    this.name = 'HttpError';
-    this.status = status;
-    this.code = code;
-  }
-}
-
-const MALFORMED_SIGNATURE = 'malformed-signature';
-const UNAUTHORIZED = 'unauthorized';
-const INSUFFICIENT_PARAMS = 'insufficient-params';
-const WRONG_PARAM_VALUES = 'wrong-param-values';
-const USER_NONEXISTENT = 'user-nonexistent';
-const PAID_EVENT = 'paid-event';
-const SERVICE_UNAVAILABLE = 'service-unavailable';
-const NOT_FOUND = 'not-found';
-const ADDRESS_EXISTS = 'address-exists';
-const DISTRIBUTION_EXISTS = 'distribution-exists';
-const EVENT_NONEXISTENT = 'event-nonexistent';
-const DISTRIBUTION_NONEXISTENT = 'distribution-nonexistent';
-
-const isNumber = value => !isNaN(value);
-const isString = value => value !== '';
-const isStringLongerThan = length => value => value.length > length;
-const isCurrencyCode = value => value.length === 3;
-const isEmail = value =>
-      value.length < 255
-      && value.length > 5
-      && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value);
-const isTelegram = value => /^@[a-zA-Z0-9_]{5,32}$/.test(value);
-
-const checkSignature = async (expectedSigner, req) => {
-  const { signature, ...object } = req.body;
-  if (!Object.keys(object).length) {
-    throw new HttpError(400, INSUFFICIENT_PARAMS);
-  }
-  if (!/^0x[0-9a-f]+$/.test(signature)) {
-    throw new HttpError(401, MALFORMED_SIGNATURE);
-  }
-  const payload = JSON.stringify(object);
-  const hexPayload = web3.utils.utf8ToHex(payload);
-  let actualSigner;
-  try {
-    actualSigner = web3.eth.accounts.recover(hexPayload, signature);
-  } catch (err) {
-    throw new HttpError(401, MALFORMED_SIGNATURE);
-  }
-  if (expectedSigner !== actualSigner) {
-    throw new HttpError(403, UNAUTHORIZED);
-  }
-}
-
-const checkParams = async (expected, req) => {
-  const actual = req.body;
-  const expectedNames = Object.keys(expected);
-  const actualNames = Object.keys(actual);
-  if (!expectedNames.every(name => actualNames.includes(name))) {
-    throw new HttpError(400, INSUFFICIENT_PARAMS);
-  }
-  for (const name in expected) {
-    const test = expected[name];
-    const actualValue = actual[name];
-    if (!test(actualValue)) {
-      throw new HttpError(400, WRONG_PARAM_VALUES);
-    }
-  }
-}
-
-const checkOptionalParams = async (expected, req) => {
-  const actual = req.body;
-  let count = 0;
-  for (const name in expected) {
-    if (name in actual) {
-      count ++;
-      const test = expected[name];
-      const actualValue = actual[name];
-      if (!test(actualValue)) {
-        throw new HttpError(400, WRONG_PARAM_VALUES);
-      }
-    }
-  }
-  if (!count) {
-    throw new HttpError(400, INSUFFICIENT_PARAMS);
-  }
-}
-
-const checkUserExists = async (users, address) => {
-  const count = await users.countDocuments({ address });
-  if (count === 0) {
-    throw new HttpError(400, USER_NONEXISTENT);
-  }
-}
-
-const handleError = (err, next) => {
-  if (err.name === 'HttpError') {
-    next(err);
-  }
-  else {
-    next(new Error());
-    console.error(err);
-  }
-}
 
 app.listen(port);

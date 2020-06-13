@@ -22,6 +22,7 @@ const { web3, getETHPrice, getGasPrice } = require('./web3.js');
 const { paymentReceived, getPayments, getHash } = require('./payu.js');
 const { getUsers, getUser, putUser, postUser } = require('./users.js');
 const { getEvents, getEvent, getAttendees, postEvent } = require('./events.js');
+const { getDistribution, putDistribution } = require('./distributions.js');
 
 const port = process.env.PORT || 3000;
 
@@ -139,7 +140,6 @@ app.get('/event/:url([a-z0-9-]{1,60})', async (req, res, next) => {
   }
 });
 
-// only used for pre-v2.0.0 events
 app.get('/event/:url([a-z0-9-]{1,60})/attendees', async (req, res, next) => {
   try {
     const { url } = req.params;
@@ -150,34 +150,30 @@ app.get('/event/:url([a-z0-9-]{1,60})/attendees', async (req, res, next) => {
   }
 });
 
+app.post('/events', async (req, res, next) => {
+  try {
+    const result = await postEvent(req);
+    res.status(201).json(result);
+  } catch (err) {
+    handleError(err, next);
+  }
+});
+
 app.get('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
   try {
     const { event } = req.params;
-    const distribution = await distributions.findOne({ event });
-    if (!distribution)
-      throw new HttpError(404, errors.DISTRIBUTION_NONEXISTENT);
+    const distribution = await getDistribution(event);
     res.json(distribution);
-  } catch (err) { handleError(err, next) }
+  } catch (err) {
+    handleError(err, next);
+  }
 });
 
 app.put('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
   try {
     const { event } = req.params;
-    const eventCount = await events.countDocuments({ url: event });
-    if (eventCount == 0) throw new HttpError(404, errors.EVENT_NONEXISTENT);
-    const distributionCount = await distributions.countDocuments({ event });
-    if (distributionCount != 0)
-      throw new HttpError(400, errors.DISTRIBUTION_EXISTS);
-    const ethPrice = await getETHPrice();
-    distributions.insertOne({ event, ethPrice });
+    await putDistribution(event);
     res.status(201).end();
-  } catch (err) { handleError(err, next) }
-});
-
-app.post('/events', async (req, res, next) => {
-  try {
-    const result = await postEvent(req);
-    res.status(201).json(result);
   } catch (err) {
     handleError(err, next);
   }

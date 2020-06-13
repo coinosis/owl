@@ -1,21 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
-const crypto = require('crypto');
-const settings = require('./settings.js');
 const {
   HttpError,
   handleError,
   errors,
-  checkParams,
   checkOptionalParams,
   checkSignature,
   checkUserExists,
   isEmail,
   isTelegram,
-  isNumber,
-  isStringLongerThan,
-  isCurrencyCode,
 } = require('./control.js');
 const {
   users,
@@ -26,10 +20,8 @@ const {
 } = require('./db.js');
 const { web3, getETHPrice, getGasPrice } = require('./eth.js');
 const { registerFor, clapFor } = require('./contract.js');
+const { paymentReceived, getPayments, getHash } = require('./payu.js');
 
-const { environmentId, payUReports } = settings;
-const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
-const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
 const port = process.env.PORT || 3000;
 const dateOptions = {
   timeZone: 'America/Bogota',
@@ -64,133 +56,36 @@ app.get('/eth/gas', async (req, res, next) => {
   }
 });
 
-app.post('/payu', (req, res) => {
-  delete req.headers['http.useragent'];
-  payments.insertOne({
-    body: req.body,
-    metadata: {
-      date: new Date(),
-      ip: req.connection.remoteAddress,
-      reference: req.body.reference_sale,
-    },
-    headers: req.headers,
-  });
-  res.status(201).end();
+app.post('/payu', (req, res, next) => {
+  try {
+    paymentReceived(req);
+    res.status(201).end();
+  } catch (err) {
+    handleError(err, next);
+  }
 });
 
-// TODO: update for v2.0.0 events
 app.get(
   '/payu/:event([a-z0-9-]{1,60})/:user(0x[a-fA-F0-9]{40})',
   async (req, res, next) => {
-    const { event, user } = req.params;
-    let counter = 1;
-    let pull, push = null;
-    const paymentList = [];
-    do {
-      const referenceCode = `${event}:${user}:${counter}:${environmentId}`;
-      pull = await pullPayment(referenceCode);
-      push = await pushPayment(referenceCode);
-      if (pull === null && push === null) break;
-      if (
-        pull
-          && push
-          && pull.status === 'APPROVED'
-          && push.status === 'APPROVED'
-          && pull.currency === 'USD'
-          && push.currency === 'USD'
-      ) {
-        const ethPrice = await getETHPrice();
-        const gasPrice = await getGasPrice();
-        const eventObject = await events.findOne({url: event});
-        const feeWei = eventObject.feeWei;
-        const feeETH = web3.utils.fromWei(feeWei);
-        const fee = feeETH * ethPrice;
-        const lowestFee = fee * 0.9;
-        if (pull.value >= lowestFee && push.value >= lowestFee) {
-          await registerFor(
-            eventObject.address,
-            user,
-            feeWei,
-            gasPrice.propose
-          );
-        }
-      }
-      const payment = { referenceCode, pull, push };
-      paymentList.push(payment);
-      counter ++;
-    } while (true);
-    paymentList.reverse();
-    res.json(paymentList);
-  });
-
-const pushPayment = async referenceCode => {
-  const payment = await payments.findOne({
-    'body.reference_sale': referenceCode,
-  });
-  if (!payment) return null;
-  const { body } = payment;
-  const result = {
-    requestDate: new Date(body.transaction_date),
-    responseDate: new Date(payment.metadata.date),
-    value: body.value,
-    currency: body.currency,
-    status: body.response_message_pol,
-    error: body.error_message_bank,
-  };
-  return result;
-}
-
-const pullPayment = async referenceCode => {
-  const object = {
-    test: true,
-    command: 'ORDER_DETAIL_BY_REFERENCE_CODE',
-    merchant: { apiLogin: payULogin, apiKey: payUKey },
-    details: { referenceCode },
-    language: 'es',
-  };
-  const body = JSON.stringify(object);
-  const method  = 'post';
-  const headers = {
-    'content-type': 'application/json',
-    accept: 'application/json',
-  };
-  const response = await fetch(payUReports, { body, method, headers });
-  if (!response.ok) return null;
-  const data = await response.json();
-  if (data.result === null || data.result.payload === null) {
-    return null;
+    try {
+      const { event, user } = req.params;
+      const paymentList = await getPayments(event, user);
+      res.json(paymentList);
+    } catch (err) {
+      handleError(err, next);
+    }
   }
-  const payload = data.result.payload[0];
-  const txValue = payload.additionalValues.TX_VALUE;
-  const transaction = payload.transactions[0];
-  const extraParameters = transaction.extraParameters;
-  const result = {
-    status: transaction.transactionResponse.state,
-    response: transaction.transactionResponse.responseCode,
-    requestDate: new Date(payload.creationDate),
-    value: txValue.value,
-    currency: txValue.currency,
-    receipt: extraParameters ? extraParameters.URL_PAYMENT_RECEIPT_HTML : '',
-  };
-  return result;
-};
+);
 
-app.post('/payu/hash', async (req, res, next) => { try {
-  const params = {
-    merchantId: isNumber,
-    referenceCode: isStringLongerThan(45),
-    amount: isNumber,
-    currency: isCurrencyCode,
-  };
-  await checkParams(params, req);
-  const { merchantId, referenceCode, amount, currency } = req.body;
-  const payload = `${payUKey}~${merchantId}~${referenceCode}~${amount}`
-        + `~${currency}`;
-  const hash = crypto.createHash('sha256');
-  hash.update(payload);
-  const digest = hash.digest('hex');
-  res.json(digest);
-} catch (err) { handleError(err, next) }});
+app.post('/payu/hash', async (req, res, next) => {
+  try {
+    const hash = await getHash(req);
+    res.json(hash);
+  } catch (err) {
+    handleError(err, next)
+  }
+});
 
 app.get('/users', async (req, res) => {
   const userList = await users.find().toArray();

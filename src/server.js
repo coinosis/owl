@@ -1,24 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const fetch = require('node-fetch');
-const {
-  HttpError,
-  handleError,
-  errors,
-  checkOptionalParams,
-  checkSignature,
-  checkUserExists,
-  isEmail,
-  isTelegram,
-} = require('./control.js');
-const {
-  users,
-  events,
-  assessments,
-  payments,
-  distributions,
-} = require('./db.js');
-const { web3, getETHPrice, getGasPrice } = require('./web3.js');
+const { handleError } = require('./control.js');
+const { getETHPrice, getGasPrice } = require('./web3.js');
 const { paymentReceived, getPayments, getHash } = require('./payu.js');
 const { getUsers, getUser, putUser, postUser } = require('./users.js');
 const { getEvents, getEvent, getAttendees, postEvent } = require('./events.js');
@@ -26,7 +9,7 @@ const { getDistribution, putDistribution } = require('./distributions.js');
 const {
   getAssessments,
   getAssessment,
-  postAssessment
+  postAssessment,
 } = require('./assessments.js');
 
 const port = process.env.PORT || 3000;

@@ -2,7 +2,7 @@ const web3 = require('./web3.js');
 const fetch = require('node-fetch');
 const EthereumTx = require('ethereumjs-tx').Transaction;
 const contractJson = require('../contracts/ProxyEvent.json');
-const { etherscanKey, web3Provider } = require('./settings.js');
+const { etherscanKey, web3Provider, chain } = require('./settings.js');
 const { HttpError, errors } = require('./control.js');
 
 const privateKeyString = process.env.PRIVATE_KEY;
@@ -15,21 +15,6 @@ const ETHPrice = `${etherscanAPI}?module=stats&action=ethprice`
       + `&apiKey=${etherscanKey}`;
 const gasTracker = `${etherscanAPI}?module=gastracker&action=gasoracle`
       + `&apiKey=${etherscanKey}`;
-
-const chains = {
-  development: {
-    name: 'ropsten', // keep ethereumjs-tx happy, ganache-cli won't mind
-    id: 3,
-  },
-  testing: {
-    name: 'ropsten',
-    id: 3,
-  },
-  production: {
-    name: 'mainnet',
-    id: 1,
-  },
-};
 
 const getETHPrice = async () => {
   const response = await fetch(ETHPrice);
@@ -106,7 +91,7 @@ const sendRawTx = async ({ to, value, data, gasPrice }) => {
 
   const tx = new EthereumTx(
     txParams,
-    { chain: chains[environment].name, hardfork: 'istanbul' }
+    { chain: chain.name, hardfork: 'istanbul' }
   );
 
   tx.sign(privateKey);
@@ -116,7 +101,7 @@ const sendRawTx = async ({ to, value, data, gasPrice }) => {
     jsonrpc: '2.0',
     method: 'eth_sendRawTransaction',
     params: [ hexTx ],
-    id: chains[environment].id,
+    id: chain.id,
   };
   const body = JSON.stringify(object);
   const options = {

@@ -8,7 +8,7 @@ const {
   isTelegram,
 } = require('./control.js');
 const db = require('./db.js');
-const { web3 } = require('./web3.js');
+const web3 = require('./web3.js');
 
 const getUsers = async () => {
   const users = await db.users.find().toArray();

@@ -1,6 +1,6 @@
 const { HttpError, errors } = require('./control.js');
 const db = require('./db.js');
-const { getETHPrice } = require('./web3.js');
+const { getETHPrice } = require('./eth.js');
 
 const getDistribution = async event => {
   const distribution = await db.distributions.findOne({ event });

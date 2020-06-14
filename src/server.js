@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { handleError } = require('./control.js');
-const { getETHPrice, getGasPrice } = require('./web3.js');
+const { getETHPrice, getGasPrice } = require('./eth.js');
 const { paymentReceived, getPayments, getHash } = require('./payu.js');
 const { getUsers, getUser, putUser, postUser } = require('./users.js');
 const { getEvents, getEvent, getAttendees, postEvent } = require('./events.js');

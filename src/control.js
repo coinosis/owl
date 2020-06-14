@@ -1,4 +1,4 @@
-const { web3 } = require('./web3.js');
+const web3 = require('./web3.js');
 const db = require('./db.js');
 
 const errors = {

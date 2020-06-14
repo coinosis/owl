@@ -1,6 +1,6 @@
 const { HttpError, errors } = require('./control.js');
 const db = require('./db.js');
-const { web3 } = require('./web3.js');
+const web3 = require('./web3.js');
 
 // only for pre-v2 events
 const getAssessments = async event => {

@@ -23,6 +23,11 @@ const { paymentReceived, getPayments, getHash } = require('./payu.js');
 const { getUsers, getUser, putUser, postUser } = require('./users.js');
 const { getEvents, getEvent, getAttendees, postEvent } = require('./events.js');
 const { getDistribution, putDistribution } = require('./distributions.js');
+const {
+  getAssessments,
+  getAssessment,
+  postAssessment
+} = require('./assessments.js');
 
 const port = process.env.PORT || 3000;
 
@@ -179,7 +184,6 @@ app.put('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
   }
 });
 
-// only for pre-v2.0.0 events
 app.get('/assessments/:event([a-z0-9-]{1,60})', async (req, res) => {
   const { event } = req.params;
   const eventCount = await events.countDocuments({ url: event });
@@ -191,7 +195,6 @@ app.get('/assessments/:event([a-z0-9-]{1,60})', async (req, res) => {
   res.json(assessmentFilter);
 });
 
-// only for pre-v2.0.0 events
 app.get(
   '/assessment/:event([a-z0-9-]{1,60})/:sender(0x[a-fA-F0-9]{40})',
   async (req, res) => {

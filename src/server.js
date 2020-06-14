@@ -196,21 +196,14 @@ app.get('/assessments/:event([a-z0-9-]{1,60})', async (req, res, next) => {
 
 app.get(
   '/assessment/:event([a-z0-9-]{1,60})/:sender(0x[a-fA-F0-9]{40})',
-  async (req, res) => {
-    const { event, sender } = req.params;
-    const eventCount = await events.countDocuments({ url: event });
-    if (eventCount === 0) {
-      res.status(404).json('event not found');
-      return;
+  async (req, res, next) => {
+    try {
+      const { event, sender } = req.params;
+      const assessment = await getAssessment(event, sender);
+      res.json(assessment);
+    } catch (err) {
+      handleError(err, next);
     }
-    const assessmentFilter = await assessments
-          .find({ event, sender })
-          .toArray();
-    if (!assessmentFilter.length) {
-      res.status(404).json('assessment not found');
-      return;
-    }
-    res.json(assessmentFilter[0]);
   }
 );
 

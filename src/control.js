@@ -18,6 +18,7 @@ const errors = {
   DISTRIBUTION_NONEXISTENT: 'distribution-nonexistent',
   INVALID_FEE: 'invalid-fee',
   INVALID_DATE: 'invalid-date',
+  ASSESSMENT_NONEXISTENT: 'assessment-nonexistent',
 }
 
 class HttpError extends Error {

@@ -63,7 +63,7 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
 
   const contract = new web3.eth.Contract(contractJson.abi, contractAddress);
   const attendees = await contract.methods.getAttendees().call();
-  if (attendees.includes(attendee)) return;
+  if (attendees.includes(attendee)) return true;
   const gasPrice = await getGasPrice();
   const tx = {
     to: contractAddress,
@@ -72,7 +72,7 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
     gasPrice: gasPrice.propose,
   };
   const result = await sendRawTx(tx);
-  console.log(result);
+  return result;
 
 }
 
@@ -87,7 +87,7 @@ const clapFor = async (contractAddress, clapper, attendees, claps) => {
     gasPrice: gasPrice.propose,
   };
   const result = await sendRawTx(tx);
-  console.log(result);
+  return result;
 
 }
 

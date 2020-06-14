@@ -19,6 +19,8 @@ const errors = {
   INVALID_FEE: 'invalid-fee',
   INVALID_DATE: 'invalid-date',
   ASSESSMENT_NONEXISTENT: 'assessment-nonexistent',
+  LENGTH_MISMATCH: 'length-mismatch',
+  TOO_MANY_CLAPS: 'too-many-claps',
 }
 
 class HttpError extends Error {
@@ -49,6 +51,9 @@ const isEmail = value =>
       && value.length > 5
       && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value);
 const isTelegram = value => /^@[a-zA-Z0-9_]{5,32}$/.test(value);
+const isAddress = value => web3.utils.isAddress(value);
+const isAddressArray = value => value.every(e => web3.utils.isAddress(e));
+const isNumberArray = value => value.every(e => !isNaN(e));
 
 const checkSignature = async (expectedSigner, req) => {
   const { signature, ...object } = req.body;
@@ -120,9 +125,13 @@ module.exports = {
   checkOptionalParams,
   checkSignature,
   checkUserExists,
+  isString,
+  isAddress,
+  isAddressArray,
   isEmail,
   isTelegram,
   isNumber,
+  isNumberArray,
   isStringLongerThan,
   isCurrencyCode,
 }

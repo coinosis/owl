@@ -398,7 +398,7 @@ const verifyAssessment = (data, date) => {
   );
 }
 
-describe('POST /assessments', () => {
+describe.skip('POST /assessments', () => {
 
   const assessment = {
     [users[0].address]: claps[0],
@@ -460,7 +460,7 @@ describe('POST /assessments', () => {
   });
 });
 
-describe('GET /assessments/:event', () => {
+describe.skip('GET /assessments/:event', () => {
   it('succeeds', async () => {
     const response = await fetch(`${url}/assessments/${event.url}`);
     const date = new Date();
@@ -471,7 +471,7 @@ describe('GET /assessments/:event', () => {
   });
 });
 
-describe('GET /assessment/:event/:sender', () => {
+describe.skip('GET /assessment/:event/:sender', () => {
   it('succeeds', async () => {
     const response = await fetch(`${url}/assessment/${event.url}/${address}`);
     const date = new Date();

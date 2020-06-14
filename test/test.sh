@@ -7,8 +7,8 @@ export PORT=5678
 export MONGODB_URI=mongodb://localhost:1234/coinosis
 export PRIVATE_KEY=$(cat ./.privateKey)
 node ./src/server.js &
-unset PRIVATE_KEY
 sleep 1
 npx mocha
+unset PRIVATE_KEY
 fuser -k 5678/tcp 2> /dev/null
 fuser -k 1234/tcp 2> /dev/null

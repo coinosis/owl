@@ -10,4 +10,15 @@ const assessments = db.collection('assessments');
 const payments = db.collection('payments');
 const distributions = db.collection('distributions');
 
-module.exports = { users, events, assessments, payments, distributions };
+const disconnect = () => {
+  dbClient.close();
+}
+
+module.exports = {
+  users,
+  events,
+  assessments,
+  payments,
+  distributions,
+  disconnect,
+};

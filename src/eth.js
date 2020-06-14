@@ -153,4 +153,4 @@ const main = async () => {
 
 // main();
 
-module.exports = { web3, getETHPrice, getGasPrice, registerFor, clapFor };
+module.exports = { getETHPrice, getGasPrice, registerFor, clapFor };

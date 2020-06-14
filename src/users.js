@@ -2,13 +2,19 @@ const {
   HttpError,
   errors,
   checkOptionalParams,
-  checkUserExists,
   checkSignature,
   isEmail,
   isTelegram,
 } = require('./control.js');
 const db = require('./db.js');
 const web3 = require('./web3.js');
+
+const checkUserExists = async address => {
+  const count = await db.users.countDocuments({ address });
+  if (count === 0) {
+    throw new HttpError(400, errors.USER_NONEXISTENT);
+  }
+}
 
 const getUsers = async () => {
   const users = await db.users.find().toArray();

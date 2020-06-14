@@ -1,5 +1,4 @@
 const web3 = require('./web3.js');
-const db = require('./db.js');
 
 const errors = {
   MALFORMED_SIGNATURE: 'malformed-signature',
@@ -110,13 +109,6 @@ const checkOptionalParams = async (expected, req) => {
   }
 }
 
-const checkUserExists = async address => {
-  const count = await db.users.countDocuments({ address });
-  if (count === 0) {
-    throw new HttpError(400, errors.USER_NONEXISTENT);
-  }
-}
-
 module.exports = {
   HttpError,
   handleError,
@@ -124,7 +116,6 @@ module.exports = {
   checkParams,
   checkOptionalParams,
   checkSignature,
-  checkUserExists,
   isString,
   isAddress,
   isAddressArray,

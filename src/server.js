@@ -207,114 +207,12 @@ app.get(
   }
 );
 
-// TODO: update for v2.0.0 events
-app.post('/assessments', async (req, res) => {
-  const params = Object.keys(req.body);
-  if (
-    !params.includes('event')
-      || !params.includes('sender')
-      || !params.includes('assessment')
-      || !params.includes('signature')
-  ) {
-    res.status(400).json('wrong param names');
-    console.error(params);
-    return;
-  }
-  const { event, sender, assessment, signature } = req.body;
-  if (
-    !/^[a-z0-9-]{1,60}$/.test(event)
-      || !web3.utils.isAddress(sender)
-      || typeof assessment !== 'object'
-      || !/^0x[0-9a-f]+$/.test(signature)
-  ) {
-    res.status(400).json('wrong param values');
-    console.error(event, sender, signature);
-    return;
-  }
-  const payload = JSON.stringify({event, sender, assessment});
-  const hex = web3.utils.utf8ToHex(payload);
-  let signer;
+app.post('/assessments', async (req, res, next) => {
   try {
-    signer = web3.eth.accounts.recover(hex, signature);
+    const result = await postAssessment(req);
+    res.status(201).json(result);
   } catch (err) {
-    res.status(401).json('malformed signature');
-    console.error(err.message);
-    return;
-  }
-  if (signer !== sender) {
-    res.status(401).json('bad signature');
-    console.error(payload, signer, sender);
-    return;
-  }
-  const assessmentCount = await assessments.countDocuments({sender, event});
-  if (assessmentCount > 0) {
-    res.status(400).json('assessment already exists');
-    console.error(assessmentCount)
-    return;
-  }
-  const eventFilter = await events.find({url: event}).toArray();
-  if (eventFilter.length === 0) {
-    res.status(404).json('event not found');
-    console.error(event);
-    return;
-  }
-  const eventObject = eventFilter[0];
-  // if (!eventObject.attendees.includes(sender)) {
-  //   res.status(400).json('sender not attending event');
-  //   console.error(eventObject.attendees, sender);
-  //   return;
-  // }
-  const addresses = Object.keys(assessment);
-  for (const i in addresses) {
-    if (!web3.utils.isAddress(addresses[i])) {
-      res.status(400).json('this is not an address');
-      console.error(addresses[i]);
-      return;
-    }
-    if (addresses[i] === sender) {
-      res.status(400).json('sender can\'t assess themselves');
-      console.error(addresses[i]);
-      return;
-    }
-    // if (!eventObject.attendees.includes(addresses[i])) {
-    //   res.status(400).json('address not attending');
-    //   console.error(eventObject.attendees, addresses[i]);
-    //   return;
-    // }
-  }
-  const claps = Object.values(assessment);
-  let totalClaps = 0;
-  for (const i in claps) {
-    if (
-      isNaN(claps[i])
-        || claps[i] < 0
-        || Number(claps[i]) !== Math.round(claps[i])
-    ) {
-      res.status(400).json('this is no natural number');
-      console.error(claps[i]);
-      return;
-    }
-    totalClaps += claps[i];
-  }
-  // if (totalClaps > (eventObject.attendees.length - 1) * 3) {
-  //   res.status(400).json('maximum number of claps exceeded');
-  //   console.error(totalClaps);
-  //   return;
-  // }
-  const now = new Date();
-  if (now < eventObject.beforeStart) {
-    res.status(400).json('the event hasn\'t started');
-    console.error(eventObject);
-    return;
-  }
-  const object = req.body;
-  object.date = now;
-  const effect = await assessments.insertOne(object);
-  if (effect.result.ok && effect.ops.length) {
-    res.status(201).json(effect.ops[0]);
-  } else {
-    res.status(500).end();
-    console.error(effect);
+    handleError(err, next);
   }
 });
 

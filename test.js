@@ -418,7 +418,7 @@ describe('POST /assessments', () => {
   it('fails due to valid but different signature', async () => {
     const response = await post('assessments', object, fakePrivateKey);
     assert.isNotOk(response.ok);
-    assert.equal(response.status, 401);
+    assert.equal(response.status, 403);
   });
   it('fails due to no signature', async () => {
     const response = await post('assessments', object, null);

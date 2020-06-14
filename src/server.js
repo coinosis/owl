@@ -184,15 +184,14 @@ app.put('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
   }
 });
 
-app.get('/assessments/:event([a-z0-9-]{1,60})', async (req, res) => {
-  const { event } = req.params;
-  const eventCount = await events.countDocuments({ url: event });
-  if (eventCount === 0) {
-    res.status(404).json('event not found');
-    return;
+app.get('/assessments/:event([a-z0-9-]{1,60})', async (req, res, next) => {
+  try {
+    const { event } = req.params;
+    const assessments = await getAssessments(event);
+    res.json(assessments);
+  } catch (err) {
+    handleError(err, next);
   }
-  const assessmentFilter = await assessments.find({ event }).toArray();
-  res.json(assessmentFilter);
 });
 
 app.get(

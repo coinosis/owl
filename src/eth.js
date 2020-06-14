@@ -54,39 +54,37 @@ const getGasPrice = async () => {
     throw new HttpError(500, errors.SERVICE_UNAVAILABLE);
   }
   const { SafeGasPrice, ProposeGasPrice } = data.result;
-  return {safe: SafeGasPrice, propose: ProposeGasPrice};
+  const safe = web3.utils.toWei(SafeGasPrice, 'gwei');
+  const propose = web3.utils.toWei(ProposeGasPrice, 'gwei');
+  return { safe, propose };
 }
 
-const registerFor = async (contractAddress, attendee, feeWei, gasPrice) => {
+const registerFor = async (contractAddress, attendee, feeWei) => {
 
   const contract = new web3.eth.Contract(contractJson.abi, contractAddress);
   const attendees = await contract.methods.getAttendees().call();
   if (attendees.includes(attendee)) return;
+  const gasPrice = await getGasPrice();
   const tx = {
     to: contractAddress,
     value: feeWei,
     data: contract.methods.registerFor(attendee).encodeABI(),
-    gasPrice,
+    gasPrice: gasPrice.propose,
   };
   const result = await sendRawTx(tx);
   console.log(result);
 
 }
 
-const clapFor = async (
-  contractAddress,
-  clapper,
-  attendees,
-  claps,
-  gasPrice
-) => {
+const clapFor = async (contractAddress, clapper, attendees, claps) => {
 
   const contract = new web3.eth.Contract(contractJson.abi, contractAddress);
+  const gasPrice = await getGasPrice();
   const tx = {
     to: contractAddress,
     value: 0,
     data: contract.methods.clapFor(clapper, attendees, claps).encodeABI(),
-    gasPrice,
+    gasPrice: gasPrice.propose,
   };
   const result = await sendRawTx(tx);
   console.log(result);

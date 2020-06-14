@@ -11,7 +11,7 @@ const {
   isCurrencyCode,
 } = require('./control.js');
 const web3 = require('./web3.js');
-const { getETHPrice, getGasPrice, registerFor } = require('./eth.js');
+const { getETHPrice, registerFor } = require('./eth.js');
 
 const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
 const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
@@ -103,7 +103,6 @@ const getPayments = async (event, user) => {
         && push.currency === 'USD'
     ) {
       const ethPrice = await getETHPrice();
-      const gasPrice = await getGasPrice();
       const eventObject = await db.events.findOne({url: event});
       const feeWei = eventObject.feeWei;
       const feeETH = web3.utils.fromWei(feeWei);
@@ -113,8 +112,7 @@ const getPayments = async (event, user) => {
         await registerFor(
           eventObject.address,
           user,
-          feeWei,
-          gasPrice.propose
+          feeWei
         );
       }
     }

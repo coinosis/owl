@@ -18,10 +18,12 @@ const gasTracker = `${etherscanAPI}?module=gastracker&action=gasoracle`
 const getETHPrice = async () => {
   const response = await fetch(ETHPrice);
   if (!response.ok) {
+    console.error(response);
     throw new HttpError(500, errors.SERVICE_UNAVAILABLE);
   }
   const data = await response.json();
   if (data.status !== '1') {
+    console.error(data);
     throw new HttpError(500, errors.SERVICE_UNAVAILABLE);
   }
   const price = data.result.ethusd;
@@ -31,10 +33,12 @@ const getETHPrice = async () => {
 const getGasPrice = async () => {
   const response = await fetch(gasTracker);
   if (!response.ok) {
+    console.error(response);
     throw new HttpError(500, errors.SERVICE_UNAVAILABLE);
   }
   const data = await response.json();
   if (data.status !== '1') {
+    console.error(data);
     throw new HttpError(500, errors.SERVICE_UNAVAILABLE);
   }
   const { SafeGasPrice, ProposeGasPrice } = data.result;

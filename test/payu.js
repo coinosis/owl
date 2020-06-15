@@ -4,6 +4,33 @@ const db = require('../src/db.js');
 
 describe('payu.js', () => {
 
+  const date = new Date().getTime();
+  const event = 'bitcoin-pizza-day-2020';
+  const user = '0x748c886A5aE916A08A493a29a5ff93880Ee000eD';
+  const referenceCode = `${event}:${user}:2:development`;
+  const value = '3.25';
+  const currency = 'COP';
+  const status = 'REJECTED';
+  const error = 'timeout ocurrido durante la transacción';
+
+  it('paymentReceived', async () => {
+    const req = {
+      body: {
+        reference_sale: referenceCode,
+        transaction_date: date,
+        value,
+        currency,
+        response_message_pol: status,
+        error,
+      },
+      connection: {
+        remoteAddress: 'aoeu',
+      },
+      headers: 'aoeu',
+    };
+    payu.paymentReceived(req);
+  });
+
   it('getHash', async () => {
     const event = 'comunicaciones-seguras';
     const user = '0xE16dF61224926Bac2724b58FC0BC49BdF7019751';

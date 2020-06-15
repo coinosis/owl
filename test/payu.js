@@ -4,31 +4,38 @@ const db = require('../src/db.js');
 
 describe('payu.js', () => {
 
-  const date = new Date().getTime();
   const event = 'bitcoin-pizza-day-2020';
   const user = '0x748c886A5aE916A08A493a29a5ff93880Ee000eD';
-  const referenceCode = `${event}:${user}:2:development`;
-  const value = '3.25';
-  const currency = 'COP';
-  const status = 'REJECTED';
-  const error = 'timeout ocurrido durante la transacción';
+  const payment = {
+    reference_sale: `${event}:${user}:2:development`,
+    transaction_date: new Date().getTime(),
+    value: '3.25',
+    currency: 'COP',
+    response_message_pol: 'REJECTED',
+    error_message_bank: 'timeout ocurrido durante la transacción',
+  };
 
   it('paymentReceived', async () => {
     const req = {
-      body: {
-        reference_sale: referenceCode,
-        transaction_date: date,
-        value,
-        currency,
-        response_message_pol: status,
-        error,
-      },
+      body: payment,
       connection: {
         remoteAddress: 'aoeu',
       },
       headers: 'aoeu',
     };
     payu.paymentReceived(req);
+  });
+
+  it('pushPayment', async () => {
+    const actualPayment = await payu.pushPayment(payment.reference_sale);
+    chai.assert.equal(
+      actualPayment.requestDate.getTime(),
+      payment.transaction_date
+    );
+    chai.assert.equal(actualPayment.value, payment.value);
+    chai.assert.equal(actualPayment.currency, payment.currency);
+    chai.assert.equal(actualPayment.status, payment.response_message_pol);
+    chai.assert.equal(actualPayment.error, payment.error_message_bank);
   });
 
   it('getHash', async () => {

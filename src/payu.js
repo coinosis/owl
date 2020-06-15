@@ -141,4 +141,10 @@ const getHash = async req => {
   return digest;
 };
 
-module.exports = { paymentReceived, getPayments, getHash }
+module.exports = {
+  paymentReceived,
+  getPayments,
+  getHash,
+  pushPayment,
+  pullPayment,
+}

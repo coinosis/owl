@@ -1,4 +1,5 @@
 const eth = require('../src/eth.js');
+const web3 = require('../src/web3.js');
 const util = require('ethereumjs-util');
 const express = require('express');
 const chai = require('chai');
@@ -40,14 +41,11 @@ describe('eth.js', () => {
     const feeWei = '12341234';
     const signature = util.keccakFromString('registerFor(address)')
           .subarray(0, 4);
-    const argument = util.setLengthLeft(util.toBuffer(attendee), 32);
+    const argument = pad(attendee);
     const expectedData = util.bufferToHex(Buffer.concat([signature, argument]))
 
     const handler = payload => {
-      chai.assert.ok(verifySignature(payload, account));
       const fields = getFields(payload);
-      chai.assert.equal(feeWei, fields.value);
-      chai.assert.equal(contractAddress.toLowerCase(), fields.to.toLowerCase());
       chai.assert.equal(fields.data, expectedData);
     }
 
@@ -57,7 +55,44 @@ describe('eth.js', () => {
 
   });
 
+  it('clapFor', async () => {
+
+    const contractAddress = '0x9E98360Daa9bbD8811D020Fd2DC6Ad38A659445E';
+    const clapper = '0x7FAb8De7BA54e7E70D359201a7b0fe307Acc0Ec6';
+    const attendees = [
+      '0xDD148eFA3c1d21202580D10E586d0d122D3e0B56',
+      '0xDEAaE56AC1c3873291C392571e7829b4DFD61426',
+      '0x65309eAbBE44E2f20252f9AA5FcB5cCCf838953a',
+    ];
+    const claps = [ 2, 4, 8 ];
+    const signature = 'clapFor(address,address[],uint256[])';
+    const dataObject = {
+      signatureChunk: util.keccakFromString(signature).subarray(0, 4),
+      clapperChunk: pad(clapper),
+      attendeesLocation: pad(web3.utils.toHex(32 * 3)),
+      clapsLocation: pad(web3.utils.toHex(32 * 7)),
+      attendeesLength: pad('0x03'),
+      attendeesChunk: Buffer.concat(attendees.map(attendee => pad(attendee))),
+      clapsLength: pad('0x03'),
+      clapsChunk: Buffer.concat(claps.map(clap => pad(clap))),
+    };
+    const expectedDataBuffer = Buffer.concat(Object.values(dataObject));
+    const expectedData = util.bufferToHex(expectedDataBuffer);
+
+    const handler = payload => {
+      const fields = getFields(payload);
+      chai.assert.equal(fields.data, expectedData);
+    }
+
+    const server = listen(handler);
+    await eth.clapFor(contractAddress, clapper, attendees, claps);
+    server.close();
+
+  });
+
 });
+
+const pad = value => util.setLengthLeft(util.toBuffer(value), 32);
 
 const listen = handler => {
   const app = express();

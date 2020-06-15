@@ -3,6 +3,7 @@
 rm -rf unitdb
 mkdir -p unitdb
 mongod --dbpath=unitdb --port=1234 > /dev/null &
+export ENVIRONMENT=unit
 export PORT=5678
 export MONGODB_URI=mongodb://localhost:1234/coinosis
 export PRIVATE_KEY=$(cat ./.privateKey)

@@ -4,39 +4,31 @@
     "payUReports": "https://sandbox.api.payulatam.com/reports-api/4.0/service.cgi",
     "etherscanKey": "2RU78DJDPVG9G2VK3AHE8QVTAN65CP9MBI",
     "web3Provider": "http://localhost:8545",
-    "chain": {
-      "name": "ropsten",
-      "id": 3
-    }
+    "chain": "ropsten",
+    "account": "0xe1fF19182deb2058016Ae0627c1E4660A895196a"
   },
   "unit": {
     "environmentId": "unit",
     "payUReports": "https://sandbox.api.payulatam.com/reports-api/4.0/service.cgi",
     "etherscanKey": "2RU78DJDPVG9G2VK3AHE8QVTAN65CP9MBI",
     "web3Provider": "http://localhost:8555",
-    "chain": {
-      "name": "ropsten",
-      "id": 3
-    }
+    "chain": "ropsten",
+    "account": "0xe1fF19182deb2058016Ae0627c1E4660A895196a"
   },
   "testing": {
     "environmentId": "testing",
     "payUReports": "https://api.payulatam.com/reports-api/4.0/service.cgi",
     "etherscanKey": "K33HJVG46X7392MMEVXXYCFERNVK77I13T",
     "web3Provider": "https://ropsten.infura.io/v3/58a2b59a8caa4c2e9834f8c3dd228b06",
-    "chain": {
-      "name": "ropsten",
-      "id": 3
-    }
+    "chain": "ropsten",
+    "account": "0xe1fF19182deb2058016Ae0627c1E4660A895196a"
   },
   "production": {
     "environmentId": "",
     "payUReports": "https://api.payulatam.com/reports-api/4.0/service.cgi",
     "etherscanKey": "NAVRNVJWI4D72RX8Z5C5FAHZ8BCNC1DCVN",
     "web3Provider": "https://mainnet.infura.io/v3/58a2b59a8caa4c2e9834f8c3dd228b06",
-    "chain": {
-      "name": "mainnet",
-      "id": 1
-    }
+    "chain": "mainnet",
+    "account": "0xe1fF19182deb2058016Ae0627c1E4660A895196a"
   }
 }

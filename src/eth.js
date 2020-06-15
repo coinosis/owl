@@ -1,15 +1,14 @@
 const web3 = require('./web3.js');
 const fetch = require('node-fetch');
 const EthereumTx = require('ethereumjs-tx').Transaction;
+const { bufferToHex } = require('ethereumjs-util');
 const contractJson = require('../contracts/ProxyEvent.json');
-const { etherscanKey, web3Provider, chain } = require('./settings.js');
+const { etherscanKey, web3Provider, chain, account } = require('./settings.js');
 const { HttpError, errors } = require('./control.js');
 
 const privateKeyString = process.env.PRIVATE_KEY;
 if (privateKeyString === undefined) throw new Error('Private key not set');
-const environment = process.env.ENVIRONMENT || 'development';
 const privateKey = Buffer.from(privateKeyString.substring(2), 'hex');
-const account = '0xe1fF19182deb2058016Ae0627c1E4660A895196a';
 const etherscanAPI = 'https://api.etherscan.io/api';
 const ETHPrice = `${etherscanAPI}?module=stats&action=ethprice`
       + `&apiKey=${etherscanKey}`;
@@ -91,17 +90,17 @@ const sendRawTx = async ({ to, value, data, gasPrice }) => {
 
   const tx = new EthereumTx(
     txParams,
-    { chain: chain.name, hardfork: 'istanbul' }
+    { chain, hardfork: 'istanbul' }
   );
 
   tx.sign(privateKey);
   const serializedTx = tx.serialize();
-  const hexTx = '0x' + serializedTx.toString('hex');
+  const hexTx = bufferToHex(serializedTx);
   const object = {
     jsonrpc: '2.0',
     method: 'eth_sendRawTransaction',
     params: [ hexTx ],
-    id: chain.id,
+    id: 123,
   };
   const body = JSON.stringify(object);
   const options = {
@@ -138,4 +137,4 @@ const main = async () => {
 
 // main();
 
-module.exports = { getETHPrice, getGasPrice, registerFor, clapFor };
+module.exports = { getETHPrice, getGasPrice, registerFor, clapFor, sendRawTx };

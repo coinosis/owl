@@ -11,7 +11,7 @@
   "scripts": {
     "start": "node ./src/server.js",
     "start:dev": "./start.dev.sh",
-    "test": "./test/test.sh"
+    "test": "./test.sh"
   },
   "author": "@e18r",
   "license": "GPL-3.0-or-later",

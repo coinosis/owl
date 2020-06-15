@@ -4,49 +4,85 @@ const express = require('express');
 const chai = require('chai');
 const { account } = require('../src/settings.js');
 
-describe('sendRawTx', () => {
-  it('succeeds', () => {
+describe('eth.js', () => {
 
-    const app = express();
-    app.use(express.json());
+  it('sendRawTx', async () => {
 
     const tx = {
       to: '0x35ef9857E5e0E8B9Ac3f559CE6319C2DBe49dB29',
-      value: '12341',
+      value: '2',
       data: '0x1234abcd',
       gasPrice: '50000000000',
     };
 
-    app.post('/', (req, res) => {
-      const id = req.body.id;
-      const body = {
-        jsonrpc: "2.0",
-        id,
-        result: "0x00"
-      };
-      res.json(body);
-      if (req.body.method === 'eth_sendRawTransaction') {
-        const payload = req.body.params[0];
-        chai.assert.ok(verifySignature(payload, account));
-        const fields = getFields(payload);
-        for (const key in tx) {
-          if (key === 'to') {
-            chai.assert.equal(tx[key].toLowerCase(), fields[key].toLowerCase());
-          } else {
-            chai.assert.equal(tx[key], fields[key]);
-          }
+    const handler = payload => {
+      chai.assert.ok(verifySignature(payload, account));
+      const fields = getFields(payload);
+      for (const key in tx) {
+        if (key === 'to') {
+          chai.assert.equal(tx[key].toLowerCase(), fields[key].toLowerCase());
+        } else {
+          chai.assert.equal(tx[key], fields[key]);
         }
       }
-    });
+    }
 
-    const server = app.listen(8555);
-    setTimeout(() => server.close(), 1000);
+    const server = listen(handler);
+    await eth.sendRawTx(tx);
+    server.close();
 
-    eth.sendRawTx(tx);
+  });
+
+  it('registerFor', async () => {
+
+    const contractAddress = '0xFd4F6865A2C5a7a80436991c033dCa5697a808d7';
+    const attendee = '0x8f4ed0E2c5714CC0A30336d67CF572A69c261b83';
+    const feeWei = '12341234';
+    const signature = util.keccakFromString('registerFor(address)')
+          .subarray(0, 4);
+    const argument = util.setLengthLeft(util.toBuffer(attendee), 32);
+    const expectedData = util.bufferToHex(Buffer.concat([signature, argument]))
+
+    const handler = payload => {
+      chai.assert.ok(verifySignature(payload, account));
+      const fields = getFields(payload);
+      chai.assert.equal(feeWei, fields.value);
+      chai.assert.equal(contractAddress.toLowerCase(), fields.to.toLowerCase());
+      chai.assert.equal(fields.data, expectedData);
+    }
+
+    const server = listen(handler);
+    await eth.registerFor(contractAddress, attendee, feeWei);
+    server.close();
 
   });
 
 });
+
+const listen = handler => {
+  const app = express();
+  app.use(express.json());
+  const server = app.listen(8555);
+  app.post('/', (req, res) => {
+    const { method, id, params: [ payload ] } = req.body;
+    const result =
+          method === 'eth_getTransactionCount'
+          ? "0x02"
+          : method === 'eth_call'
+          ? ""
+          : ""
+    const body = {
+      jsonrpc: "2.0",
+      id,
+      result,
+    };
+    res.json(body);
+    if (method === 'eth_sendRawTransaction') {
+      handler(payload);
+    }
+  });
+  return server;
+}
 
 const verifySignature = (payload, signer) => {
   const rawTx = util.rlp.decode(payload);

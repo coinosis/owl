@@ -2,7 +2,7 @@ const web3 = require('./web3.js');
 const fetch = require('node-fetch');
 const EthereumTx = require('ethereumjs-tx').Transaction;
 const { bufferToHex } = require('ethereumjs-util');
-const contractJson = require('../contracts/ProxyEvent.json');
+const abi = require('../contracts/ProxyEvent.abi.json');
 const { etherscanKey, web3Provider, chain, account } = require('./settings.js');
 const { HttpError, errors } = require('./control.js');
 
@@ -49,7 +49,7 @@ const getGasPrice = async () => {
 
 const registerFor = async (contractAddress, attendee, feeWei) => {
 
-  const contract = new web3.eth.Contract(contractJson.abi, contractAddress);
+  const contract = new web3.eth.Contract(abi, contractAddress);
   const attendees = await contract.methods.getAttendees().call();
   if (attendees.includes(attendee)) return true;
   const gasPrice = await getGasPrice();
@@ -66,7 +66,7 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
 
 const clapFor = async (contractAddress, clapper, attendees, claps) => {
 
-  const contract = new web3.eth.Contract(contractJson.abi, contractAddress);
+  const contract = new web3.eth.Contract(abi, contractAddress);
   const gasPrice = await getGasPrice();
   const tx = {
     to: contractAddress,

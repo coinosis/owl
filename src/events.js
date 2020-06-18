@@ -22,6 +22,9 @@ const getAttendees = async url => {
     throw new HttpError(404, errors.EVENT_NONEXISTENT);
   }
   const { attendees } = event;
+  if (attendees === undefined) {
+    throw new HttpError(400, errors.WRONG_EVENT_VERSION);
+  }
   const users = await db.users
         .find({ address: { $in: attendees }})
         .toArray();

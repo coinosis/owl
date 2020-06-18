@@ -20,6 +20,7 @@ const errors = {
   ASSESSMENT_NONEXISTENT: 'assessment-nonexistent',
   LENGTH_MISMATCH: 'length-mismatch',
   TOO_MANY_CLAPS: 'too-many-claps',
+  WRONG_EVENT_VERSION: 'wrong-event-version',
 }
 
 class HttpError extends Error {

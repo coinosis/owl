@@ -4,7 +4,7 @@ const EthereumTx = require('ethereumjs-tx').Transaction;
 const { bufferToHex } = require('ethereumjs-util');
 const abi = require('../contracts/ProxyEvent.abi.json');
 const { etherscanKey, web3Provider, chain, account } = require('./settings.js');
-const { HttpError, errors } = require('./control.js');
+const { HttpError, errors, statuses } = require('./control.js');
 
 const privateKeyString = process.env.PRIVATE_KEY;
 if (privateKeyString === undefined) throw new Error('Private key not set');
@@ -51,7 +51,9 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
 
   const contract = new web3.eth.Contract(abi, contractAddress);
   const attendees = await contract.methods.getAttendees().call();
-  if (attendees.includes(attendee)) return true;
+  if (attendees.includes(attendee)) {
+    return { address: attendee, status: statuses.ALREADY_REGISTERED };
+  }
   const gasPrice = await getGasPrice();
   const tx = {
     to: contractAddress,
@@ -59,8 +61,12 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
     data: contract.methods.registerFor(attendee).encodeABI(),
     gasPrice: gasPrice.propose,
   };
-  const result = await sendRawTx(tx);
-  return result;
+  const response = await sendRawTx(tx);
+  return {
+    address: attendee,
+    status: statuses.SENT,
+    tx: response.result,
+  };
 
 }
 

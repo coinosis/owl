@@ -1,5 +1,10 @@
 const web3 = require('./web3.js');
 
+const statuses = {
+  ALREADY_REGISTERED: 'already-registered',
+  SENT: 'sent',
+};
+
 const errors = {
   MALFORMED_SIGNATURE: 'malformed-signature',
   UNAUTHORIZED: 'unauthorized',
@@ -21,7 +26,7 @@ const errors = {
   LENGTH_MISMATCH: 'length-mismatch',
   TOO_MANY_CLAPS: 'too-many-claps',
   WRONG_EVENT_VERSION: 'wrong-event-version',
-}
+};
 
 class HttpError extends Error {
   constructor(status, code) {
@@ -113,6 +118,7 @@ const checkOptionalParams = async (expected, req) => {
 module.exports = {
   HttpError,
   handleError,
+  statuses,
   errors,
   checkParams,
   checkOptionalParams,

@@ -109,11 +109,12 @@ const getPayments = async (event, user) => {
       const fee = feeETH * ethPrice;
       const lowestFee = fee * 0.9;
       if (pull.value >= lowestFee && push.value >= lowestFee) {
-        await registerFor(
+        const result = await registerFor(
           eventObject.address,
           user,
           feeWei
         );
+        console.log(result);
       }
     }
     const payment = { referenceCode, pull, push };

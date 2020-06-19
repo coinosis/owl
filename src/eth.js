@@ -126,25 +126,4 @@ const sendRawTx = async ({ to, value, data, gasPrice }) => {
   return result;
 }
 
-const main = async () => {
-  const contractAddress = '0x68aEF7a46577eaBba909aAc70E79BCBe1e186146';
-  const attendees = [
-    '0x44F14099B8b9C60515E83a0cB1a85E14982BB091',
-    '0xbD0FdA31473461b21CB7d723e70B3b5C1C9cb251',
-    '0x0f494B8cB38642C376E605D64A7227caC6431aFc',
-  ];
-  const feeWei = '3333';
-  const gasPrice = '50000000000';
-  console.log(await registerFor(contractAddress, attendees[0], feeWei, gasPrice));
-  console.log(await registerFor(contractAddress, attendees[1], feeWei, gasPrice));
-  console.log(await registerFor(contractAddress, attendees[2], feeWei, gasPrice));
-
-  const clapper = attendees[0];
-  const claps = [ 0, 6, 4 ];
-  console.log(await clapFor(contractAddress, clapper, attendees, claps, gasPrice));
-
-}
-
-// main();
-
 module.exports = { getETHPrice, getGasPrice, registerFor, clapFor, sendRawTx };

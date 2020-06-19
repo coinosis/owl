@@ -1,14 +1,14 @@
 const web3 = require('./web3.js');
 const fetch = require('node-fetch');
 const EthereumTx = require('ethereumjs-tx').Transaction;
-const { bufferToHex } = require('ethereumjs-util');
+const { bufferToHex, toBuffer } = require('ethereumjs-util');
 const abi = require('../contracts/ProxyEvent.abi.json');
 const { etherscanKey, web3Provider, chain, account } = require('./settings.js');
 const { HttpError, errors, statuses } = require('./control.js');
 
 const privateKeyString = process.env.PRIVATE_KEY;
 if (privateKeyString === undefined) throw new Error('Private key not set');
-const privateKey = Buffer.from(privateKeyString.substring(2), 'hex');
+const privateKey = toBuffer(privateKeyString);
 const etherscanAPI = 'https://api.etherscan.io/api';
 const ETHPrice = `${etherscanAPI}?module=stats&action=ethprice`
       + `&apiKey=${etherscanKey}`;

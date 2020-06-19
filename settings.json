@@ -17,7 +17,7 @@
   },
   "testing": {
     "environmentId": "testing",
-    "payUReports": "https://api.payulatam.com/reports-api/4.0/service.cgi",
+    "payUReports": "https://sandbox.api.payulatam.com/reports-api/4.0/service.cgi",
     "etherscanKey": "K33HJVG46X7392MMEVXXYCFERNVK77I13T",
     "web3Provider": "https://ropsten.infura.io/v3/58a2b59a8caa4c2e9834f8c3dd228b06",
     "chain": "ropsten",

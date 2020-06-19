@@ -47,8 +47,6 @@ const pushPayment = async referenceCode => {
 }
 
 const pullPayment = async referenceCode => {
-  console.log({ apiLogin: payULogin, apiKey: payUKey });
-  console.log(payUReports);
   const object = {
     test: true,
     command: 'ORDER_DETAIL_BY_REFERENCE_CODE',

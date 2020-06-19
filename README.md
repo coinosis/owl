@@ -1,7 +1,8 @@
-## prerequisites
+# Install owl
+
+## prerequisite
 
 * [mongodb](https://docs.mongodb.com/manual/administration/install-community/)
-* [heroku CLI](https://devcenter.heroku.com/articles/heroku-cli#download-and-install)
 
 ## install
 
@@ -9,15 +10,15 @@
 
 git clone https://github.com/coinosis/owl -b dev
 cd owl
-npm i
+npm install
 mkdir db
-npm i -g nodemon
+npm install -g nodemon
 
 ```
 
 ## run
 
-* Store the private key in owl/.privateKey
+Since owl creates Ethereum transactions on its own, you need to provide it the private key of an Ethereum account. Store it in `.privateKey`
 
 ```bash
 
@@ -26,6 +27,8 @@ npm run start:dev
 ```
 
 If running for the first time, run `scripts/initialize.sh`.
+
+# Development
 
 ## Submit your changes
 
@@ -43,11 +46,14 @@ $ mongo coinosis
 
 ```
 
+# DevOps
+
 ## deploy to heroku
 
 1. create a heroku account
 2. install the mongolab add-on
 3. deploy the code
+2. install [heroku CLI](https://devcenter.heroku.com/articles/heroku-cli#download-and-install)
 4. `MONGODB_URI=$(heroku config:get MONGODB_URI -a <your-app-name>) scripts/initialize.sh`
 
 ## migrate data from production

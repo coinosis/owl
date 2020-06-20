@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 const crypto = require('crypto');
 const db = require('./db.js');
-const { payUReports, environmentId } = require('./settings.js');
+const { payUReports, environmentId, merchantId } = require('./settings.js');
 const {
   HttpError,
   errors,
@@ -125,14 +125,13 @@ const getPayments = async (event, user) => {
   return paymentList;
 };
 
-const getHash = async ({ merchantId, referenceCode, amount, currency }) => {
+const getHash = async ({ referenceCode, amount, currency }) => {
   const params = {
-    merchantId: isNumber,
     referenceCode: isStringLongerThan(45),
     amount: isNumber,
     currency: isCurrencyCode,
   };
-  await checkParams(params, { merchantId, referenceCode, amount, currency });
+  await checkParams(params, { referenceCode, amount, currency });
   const payload = `${payUKey}~${merchantId}~${referenceCode}~${amount}`
         + `~${currency}`;
   const hash = crypto.createHash('sha256');

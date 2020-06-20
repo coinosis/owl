@@ -68,15 +68,12 @@ describe('payu.js', () => {
   it('getHash', async () => {
     const event = 'comunicaciones-seguras';
     const user = '0xE16dF61224926Bac2724b58FC0BC49BdF7019751';
-    const body = {
-      merchantId: '123456',
-      referenceCode: `${event}:${user}:1:testing`,
-      amount: '23.12',
-      currency: 'USD',
-    };
-    const hash = await payu.getHash(body);
+    const referenceCode = `${event}:${user}:1:testing`;
+    const amount = '23.12';
+    const currency = 'USD';
+    const hash = await payu.getHash({ referenceCode, amount, currency });
     const expected =
-          '52a4902bf5994be25a1fe63ab50ddc52a1e83c4e5b3295985fda95a08c84ce6c';
+          '7140049ab958d91dddfa704b06c6e24860098a2a6f103418b4fe44e5fbaae15d';
     chai.assert.equal(hash, expected);
   });
 

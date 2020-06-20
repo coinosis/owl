@@ -81,8 +81,7 @@ const checkSignature = async (expectedSigner, req) => {
   }
 }
 
-const checkParams = async (expected, req) => {
-  const actual = req.body;
+const checkParams = async (expected, actual) => {
   const expectedNames = Object.keys(expected);
   const actualNames = Object.keys(actual);
   if (!expectedNames.every(name => actualNames.includes(name))) {

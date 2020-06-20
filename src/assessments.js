@@ -43,7 +43,7 @@ const postAssessment = async req => {
     addresses: isAddressArray,
     claps: isNumberArray,
   };
-  await checkParams(params, req);
+  await checkParams(params, req.body);
   const { event: eventURL, sender: senderAddress, addresses, claps } = req.body;
   await checkSignature(senderAddress, req);
 

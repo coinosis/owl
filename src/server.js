@@ -65,7 +65,8 @@ app.get(
 
 app.post('/payu/hash', async (req, res, next) => {
   try {
-    const hash = await getHash(req);
+    const { body } = req;
+    const hash = await getHash(body);
     res.json(hash);
   } catch (err) {
     handleError(err, next)

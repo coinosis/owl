@@ -18,6 +18,21 @@ describe('payu.js', () => {
     sign: '4539078c5e2170a53797fa26d5fddd44246ba9cb4200aea2705e2a3672b88c28',
   };
 
+  it('getHashableAmount', () => {
+    const amounts = {
+      '25': '25',
+      '25.2': '25.2',
+      '25.25': '25.25',
+      '25.20': '25.2',
+      '25.00': '25.0',
+    };
+    for (const key in amounts) {
+      const expected = amounts[key];
+      const amount = key;
+      chai.assert.equal(expected, payu.getHashableAmount(amount));
+    }
+  });
+
   it('paymentReceived', async () => {
     const req = {
       body: payment,

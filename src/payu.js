@@ -16,6 +16,17 @@ const { getETHPrice, registerFor } = require('./eth.js');
 const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
 const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
 
+const getHashableAmount = amount => {
+  const matches = amount.match('(\\d+\\.?\\d?)(\\d?)');
+  const baseAmount = matches[1];
+  const secondDigit = matches[2];
+  if (secondDigit == 0) {
+    return baseAmount;
+  } else {
+    return `${baseAmount}${secondDigit}`;
+  }
+}
+
 const paymentReceived = async req => {
   const params = {
     sign: isStringLongerThan(60),
@@ -28,17 +39,14 @@ const paymentReceived = async req => {
   const {
     sign: actualHash,
     reference_sale: referenceCode,
-    value,
+    value: amount,
     currency,
     state_pol: state,
   } = req.body;
-  const matches = value.match('(\\d+\\.?\\d?)(\\d?)');
-  const baseAmount = matches[1];
-  const secondDigit = matches[2];
-  const amount = secondDigit == 0 ? baseAmount : `${baseAmount}${secondDigit}`
+  const hashableAmount = getHashableAmount(amount);
   const expectedHash = await getHash({
     referenceCode,
-    amount,
+    amount: hashableAmount,
     currency,
     state,
   });
@@ -176,4 +184,5 @@ module.exports = {
   getHash,
   pushPayment,
   pullPayment,
+  getHashableAmount,
 }

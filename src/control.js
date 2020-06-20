@@ -47,7 +47,10 @@ const handleError = (err, next) => {
   }
 }
 
-const isNumber = value => !isNaN(value);
+const isNumber = value => !isNaN(value)
+  && value !== Infinity
+  && value !== -Infinity;
+const isPositiveNumber = value => isNumber(value) && value > 0;
 const isString = value => value !== '';
 const isStringLongerThan = length => value => value.length > length;
 const isCurrencyCode = value => value.length === 3;
@@ -128,6 +131,7 @@ module.exports = {
   isEmail,
   isTelegram,
   isNumber,
+  isPositiveNumber,
   isNumberArray,
   isStringLongerThan,
   isCurrencyCode,

@@ -6,7 +6,7 @@ const {
   HttpError,
   errors,
   checkParams,
-  isNumber,
+  isPositiveNumber,
   isStringLongerThan,
   isCurrencyCode,
 } = require('./control.js');
@@ -16,7 +16,36 @@ const { getETHPrice, registerFor } = require('./eth.js');
 const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
 const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
 
-const paymentReceived = req => {
+const paymentReceived = async req => {
+  const params = {
+    sign: isStringLongerThan(60),
+    reference_sale: isStringLongerThan(45),
+    value: isPositiveNumber,
+    currency: isCurrencyCode,
+    state_pol: isPositiveNumber,
+  };
+  await checkParams(params, req.body);
+  const {
+    sign: actualHash,
+    reference_sale: referenceCode,
+    value,
+    currency,
+    state_pol: state,
+  } = req.body;
+  const matches = value.match('(\\d+\\.?\\d?)(\\d?)');
+  const baseAmount = matches[1];
+  const secondDigit = matches[2];
+  const amount = secondDigit == 0 ? baseAmount : `${baseAmount}${secondDigit}`
+  const expectedHash = await getHash({
+    referenceCode,
+    amount,
+    currency,
+    state,
+  });
+  if (actualHash !== expectedHash) {
+    console.error({ actualHash, expectedHash });
+    throw new HttpError(401, errors.UNAUTHORIZED);
+  }
   delete req.headers['http.useragent'];
   db.payments.insertOne({
     body: req.body,
@@ -125,15 +154,16 @@ const getPayments = async (event, user) => {
   return paymentList;
 };
 
-const getHash = async ({ referenceCode, amount, currency }) => {
+const getHash = async ({ referenceCode, amount, currency, state }) => {
   const params = {
     referenceCode: isStringLongerThan(45),
-    amount: isNumber,
+    amount: isPositiveNumber,
     currency: isCurrencyCode,
   };
   await checkParams(params, { referenceCode, amount, currency });
-  const payload = `${payUKey}~${merchantId}~${referenceCode}~${amount}`
+  const payloadBase = `${payUKey}~${merchantId}~${referenceCode}~${amount}`
         + `~${currency}`;
+  const payload = state ? `${payloadBase}~${state}` : payloadBase;
   const hash = crypto.createHash('sha256');
   hash.update(payload);
   const digest = hash.digest('hex');

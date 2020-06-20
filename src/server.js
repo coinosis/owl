@@ -41,9 +41,9 @@ app.get('/eth/gas', async (req, res, next) => {
   }
 });
 
-app.post('/payu', (req, res, next) => {
+app.post('/payu', async (req, res, next) => {
   try {
-    paymentReceived(req);
+    await paymentReceived(req);
     res.status(200).end();
   } catch (err) {
     handleError(err, next);

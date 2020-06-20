@@ -30,6 +30,13 @@ const getETHPrice = async () => {
   return price;
 }
 
+const usdToWei = async usd => {
+  const ethPrice = await getETHPrice();
+  const eth = usd / ethPrice;
+  const wei = web3.utils.toWei(String(eth));
+  return wei;
+}
+
 const getGasPrice = async () => {
   const response = await fetch(gasTracker);
   if (!response.ok) {
@@ -126,4 +133,11 @@ const sendRawTx = async ({ to, value, data, gasPrice }) => {
   return result;
 }
 
-module.exports = { getETHPrice, getGasPrice, registerFor, clapFor, sendRawTx };
+module.exports = {
+  getETHPrice,
+  getGasPrice,
+  registerFor,
+  clapFor,
+  sendRawTx,
+  usdToWei,
+};

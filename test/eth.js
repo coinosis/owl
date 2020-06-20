@@ -7,6 +7,10 @@ const { account } = require('../src/settings.js');
 
 describe('eth.js', () => {
 
+  it('usdToWei', async () => {
+    console.log(await eth.usdToWei(250));
+  });
+
   it('sendRawTx', async () => {
 
     const tx = {

@@ -106,7 +106,7 @@ const processPayment = async ({ referenceCode, amount, currency }) => {
   const event = await db.events.findOne({ url: eventURL });
   if (event === null) throw new HttpError(404, errors.EVENT_NONEXISTENT);
   const { feeWei, address: contractAddress } = event;
-  const ethPrice = getETHPrice();
+  const ethPrice = await getETHPrice();
   const amountWei = await usdToWei(amount);
   const correctPushFee = checkFee({ expected: feeWei, actual: amountWei });
   if (!correctPushFee) {

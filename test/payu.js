@@ -18,6 +18,10 @@ describe('payu.js', () => {
     sign: '4539078c5e2170a53797fa26d5fddd44246ba9cb4200aea2705e2a3672b88c28',
   };
 
+  it('sleep', async () => {
+    await payu.sleep(1232);
+  });
+
   it('checkFee', () => {
     const values = [
       { expected: 10000000000000000, actual: 10000000000000000, result: true },

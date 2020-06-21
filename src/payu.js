@@ -21,6 +21,8 @@ const { getETHPrice, registerFor } = require('./eth.js');
 const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
 const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
 
+const sleep = util.promisify(setTimeout);
+
 const checkFee = ({ expected, actual }) => {
   const minExpectedFee = expected * feeThreshold;
   return actual >= minExpectedFee;
@@ -196,4 +198,5 @@ module.exports = {
   pullPayment,
   getHashableAmount,
   checkFee,
+  sleep,
 }

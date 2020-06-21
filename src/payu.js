@@ -78,6 +78,19 @@ const paymentReceived = async req => {
   });
 };
 
+const awaitPullPayment = async referenceCode => {
+  let attempts = 1;
+  let pull = await pullPayment(referenceCode);
+  while(pull === null && attempts < pullAttempts) {
+    attempts++;
+    console.log(`attempt # ${attempts}`);
+    await sleep(pullInterval);
+    pull = await pullPayment(referenceCode);
+    console.log(pull);
+  }
+  return pull;
+}
+
 const pushPayment = async referenceCode => {
   const payment = await db.payments.findOne({
     'body.reference_sale': referenceCode,
@@ -199,4 +212,5 @@ module.exports = {
   getHashableAmount,
   checkFee,
   sleep,
+  awaitPullPayment,
 }

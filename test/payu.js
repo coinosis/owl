@@ -3,7 +3,7 @@ const express = require('express');
 const chai = require('chai');
 const db = require('../src/db.js');
 
-const setupServer = handler => {
+const startServer = handler => {
   const app = express();
   app.use(express.json());
   const server = app.listen(9470);
@@ -68,6 +68,46 @@ describe('payu.js', () => {
     await payu.paymentReceived(req);
   });
 
+  it('awaitPullPayment', async () => {
+    const handler = (req, res) => {
+      const data = {
+        result: {
+          payload: [
+            {
+              creationDate: new Date().getTime(),
+              additionalValues: {
+                TX_VALUE: {
+                  value: '3.25',
+                  currency: 'COP'
+                },
+              },
+              transactions: [
+                {
+                  transactionResponse: {
+                    state: 'hey',
+                    responseCode: 'blue'
+                  },
+                  extraParameters: {
+                    URL_PAYMENT_RECEIPT_HTML: 'hello',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      };
+      res.json(data);
+    }
+    const server1 = startServer((req, res) => { handler(req, res); });
+    const pull1 = await payu.awaitPullPayment(payment.reference_sale);
+    chai.assert.equal(pull1.value, payment.value);
+    server1.close();
+    const server2 = startServer((req, res) => { res.json({ result: null }); });
+    const pull2 = await payu.awaitPullPayment('aoeu');
+    chai.assert.equal(null, pull2);
+    server2.close();
+  });
+
   it('pushPayment', async () => {
     const actualPayment = await payu.pushPayment(payment.reference_sale);
     chai.assert.equal(
@@ -99,7 +139,7 @@ describe('payu.js', () => {
       chai.assert.equal(language, 'es');
       res.json({ result: null });
     };
-    const server = setupServer(handler);
+    const server = startServer(handler);
     await payu.pullPayment(payment.reference_sale);
     server.close();
   });

@@ -29,21 +29,22 @@ const errors = {
 };
 
 class HttpError extends Error {
-  constructor(status, code) {
+  constructor(status, code, object) {
     super(code);
     this.name = 'HttpError';
     this.status = status;
     this.code = code;
+    this.object = object;
   }
 }
 
 const handleError = (err, next) => {
+  console.error(err);
   if (err.name === 'HttpError') {
     next(err);
   }
   else {
     next(new Error());
-    console.error(err);
   }
 }
 

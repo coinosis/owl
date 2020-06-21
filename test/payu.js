@@ -18,6 +18,18 @@ describe('payu.js', () => {
     sign: '4539078c5e2170a53797fa26d5fddd44246ba9cb4200aea2705e2a3672b88c28',
   };
 
+  it('checkFee', () => {
+    const values = [
+      { expected: 10000000000000000, actual: 10000000000000000, result: true },
+      { expected: 10000000000000000, actual: 9999999999999999, result: true },
+      { expected: 10000000000000000, actual: 5000000000000000, result: false },
+      { expected: 10000000000000000, actual: 10000000100000000, result: true },
+    ];
+    for (const value of values) {
+      chai.assert.equal(value.result, payu.checkFee(value));
+    }
+  });
+
   it('getHashableAmount', () => {
     const amounts = {
       '25': '25',

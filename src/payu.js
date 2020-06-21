@@ -1,7 +1,12 @@
 const fetch = require('node-fetch');
 const crypto = require('crypto');
 const db = require('./db.js');
-const { payUReports, environmentId, merchantId } = require('./settings.js');
+const {
+  payUReports,
+  environmentId,
+  merchantId,
+  feeThreshold,
+} = require('./settings.js');
 const {
   HttpError,
   errors,
@@ -15,6 +20,11 @@ const { getETHPrice, registerFor } = require('./eth.js');
 
 const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
 const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
+
+const checkFee = ({ expected, actual }) => {
+  const minExpectedFee = expected * feeThreshold;
+  return actual >= minExpectedFee;
+}
 
 const getHashableAmount = amount => {
   const matches = amount.match('(\\d+\\.?\\d?)(\\d?)');
@@ -185,4 +195,5 @@ module.exports = {
   pushPayment,
   pullPayment,
   getHashableAmount,
+  checkFee,
 }

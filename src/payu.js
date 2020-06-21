@@ -198,29 +198,6 @@ const getPayments = async (event, user) => {
     pull = await pullPayment(referenceCode);
     push = await pushPayment(referenceCode);
     if (pull === null && push === null) break;
-    if (
-      pull
-        && push
-        && pull.status === 'APPROVED'
-        && push.status === 'APPROVED'
-        && pull.currency === 'USD'
-        && push.currency === 'USD'
-    ) {
-      const ethPrice = await getETHPrice();
-      const eventObject = await db.events.findOne({url: event});
-      const feeWei = eventObject.feeWei;
-      const feeETH = web3.utils.fromWei(feeWei);
-      const fee = feeETH * ethPrice;
-      const lowestFee = fee * 0.9;
-      if (pull.value >= lowestFee && push.value >= lowestFee) {
-        // const result = await registerFor(
-        //   eventObject.address,
-        //   user,
-        //   feeWei
-        // );
-        // console.log(result);
-      }
-    }
     const payment = { referenceCode, pull, push };
     paymentList.push(payment);
     counter ++;

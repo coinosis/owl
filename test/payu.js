@@ -3,6 +3,14 @@ const express = require('express');
 const chai = require('chai');
 const db = require('../src/db.js');
 
+const setupServer = handler => {
+  const app = express();
+  app.use(express.json());
+  const server = app.listen(9470);
+  app.post('/', (req, res) => handler(req, res));
+  return server;
+}
+
 describe('payu.js', () => {
 
   const event = 'bitcoin-pizza-day-2020';
@@ -73,10 +81,7 @@ describe('payu.js', () => {
   });
 
   it('pullPayment', async () => {
-    const app = express();
-    app.use(express.json());
-    const server = app.listen(9470);
-    app.post('/', (req, res) => {
+    const handler = (req, res) => {
       chai.assert.equal(req.headers['content-type'], 'application/json');
       chai.assert.equal(req.headers.accept, 'application/json');
       const {
@@ -93,8 +98,9 @@ describe('payu.js', () => {
       chai.assert.equal(referenceCode, payment.reference_sale);
       chai.assert.equal(language, 'es');
       res.json({ result: null });
-    });
-    const result = await payu.pullPayment(payment.reference_sale);
+    };
+    const server = setupServer(handler);
+    await payu.pullPayment(payment.reference_sale);
     server.close();
   });
 

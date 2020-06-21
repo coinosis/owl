@@ -21,11 +21,14 @@ const errors = {
   EVENT_EXISTS: 'event-exists',
   DISTRIBUTION_NONEXISTENT: 'distribution-nonexistent',
   INVALID_FEE: 'invalid-fee',
+  INVALID_CURRENCY: 'invalid-currency',
   INVALID_DATE: 'invalid-date',
   ASSESSMENT_NONEXISTENT: 'assessment-nonexistent',
   LENGTH_MISMATCH: 'length-mismatch',
   TOO_MANY_CLAPS: 'too-many-claps',
   WRONG_EVENT_VERSION: 'wrong-event-version',
+  PAYMENT_NONEXISTENT: 'payment-nonexistent',
+  INVALID_PAYMENT: 'invalid-payment',
 };
 
 class HttpError extends Error {

@@ -7,7 +7,9 @@
     "chain": "ropsten",
     "account": "0x9fCA45d4fF08e62B3084a68353BE55bD905c961A",
     "merchantId": 508029,
-    "feeThreshold": 0.9
+    "feeThreshold": 0.9,
+    "pullAttempts": 100,
+    "pullInterval": 2000
   },
   "unit": {
     "environmentId": "unit",
@@ -17,7 +19,9 @@
     "chain": "ropsten",
     "account": "0x9fCA45d4fF08e62B3084a68353BE55bD905c961A",
     "merchantId": 508029,
-    "feeThreshold": 0.9
+    "feeThreshold": 0.9,
+    "pullAttempts": 10,
+    "pullInterval": 20
   },
   "testing": {
     "environmentId": "testing",
@@ -27,7 +31,9 @@
     "chain": "ropsten",
     "account": "0x9fCA45d4fF08e62B3084a68353BE55bD905c961A",
     "merchantId": 508029,
-    "feeThreshold": 0.9
+    "feeThreshold": 0.9,
+    "pullAttempts": 100,
+    "pullInterval": 2000
   },
   "production": {
     "environmentId": "",
@@ -37,6 +43,8 @@
     "chain": "mainnet",
     "account": "0x9fCA45d4fF08e62B3084a68353BE55bD905c961A",
     "merchantId": 845239,
-    "feeThreshold": 0.9
+    "feeThreshold": 0.9,
+    "pullAttempts": 100,
+    "pullInterval": 2000
   }
 }

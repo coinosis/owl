@@ -1,11 +1,14 @@
 const fetch = require('node-fetch');
 const crypto = require('crypto');
+const util = require('util');
 const db = require('./db.js');
 const {
   payUReports,
   environmentId,
   merchantId,
   feeThreshold,
+  pullAttempts,
+  pullInterval,
 } = require('./settings.js');
 const {
   HttpError,
@@ -16,10 +19,13 @@ const {
   isCurrencyCode,
 } = require('./control.js');
 const web3 = require('./web3.js');
-const { getETHPrice, registerFor } = require('./eth.js');
+const { getETHPrice, registerFor, usdToWei } = require('./eth.js');
 
 const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
 const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
+
+const APPROVED = 4;
+const USD = 'USD';
 
 const sleep = util.promisify(setTimeout);
 
@@ -66,6 +72,9 @@ const paymentReceived = async req => {
     console.error({ actualHash, expectedHash });
     throw new HttpError(401, errors.UNAUTHORIZED);
   }
+  if (state == APPROVED) {
+    await processPayment({ referenceCode, amount, currency });
+  }
   delete req.headers['http.useragent'];
   db.payments.insertOne({
     body: req.body,
@@ -89,6 +98,39 @@ const awaitPullPayment = async referenceCode => {
     console.log(pull);
   }
   return pull;
+}
+
+const processPayment = async ({ referenceCode, amount, currency }) => {
+  if (currency !== USD) throw new HttpError(400, errors.INVALID_CURRENCY);
+  const [ eventURL, userAddress ] = referenceCode.split(':');
+  const event = await db.events.findOne({ url: eventURL });
+  if (event === null) throw new HttpError(404, errors.EVENT_NONEXISTENT);
+  const { feeWei, address: contractAddress } = event;
+  const ethPrice = getETHPrice();
+  const amountWei = await usdToWei(amount);
+  const correctPushFee = checkFee({ expected: feeWei, actual: amountWei });
+  if (!correctPushFee) {
+    throw new HttpError(400, errors.INVALID_FEE, { feeWei, amountWei });
+  }
+  const pullPayment = await awaitPullPayment(referenceCode);
+  if (pullPayment === null) {
+    throw new HttpError(404, errors.PAYMENT_NONEXISTENT);
+  }
+  const { status, currency: pullCurrency, value: pullAmount } = pullPayment;
+  if (status !== 'APPROVED' || pullCurrency !== USD || pullAmount != amount) {
+    throw new HttpError(400, errors.INVALID_PAYMENT);
+  }
+  const result = await registerFor(contractAddress, userAddress, feeWei);
+  const feeETH = web3.utils.fromWei(feeWei);
+  const transaction = {
+    referenceCode,
+    feeETH,
+    ethPrice,
+    amountPaid: amount,
+    currency,
+    hash: result.tx,
+  };
+  db.transactions.insertOne(transaction);
 }
 
 const pushPayment = async referenceCode => {
@@ -171,12 +213,12 @@ const getPayments = async (event, user) => {
       const fee = feeETH * ethPrice;
       const lowestFee = fee * 0.9;
       if (pull.value >= lowestFee && push.value >= lowestFee) {
-        const result = await registerFor(
-          eventObject.address,
-          user,
-          feeWei
-        );
-        console.log(result);
+        // const result = await registerFor(
+        //   eventObject.address,
+        //   user,
+        //   feeWei
+        // );
+        // console.log(result);
       }
     }
     const payment = { referenceCode, pull, push };

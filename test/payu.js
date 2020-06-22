@@ -19,11 +19,11 @@ describe('payu.js', () => {
     reference_sale: `${event}:${user}:2:development`,
     transaction_date: new Date().getTime(),
     value: '3.25',
-    currency: 'COP',
+    currency: 'USD',
     response_message_pol: 'REJECTED',
     error_message_bank: 'timeout ocurrido durante la transacción',
     state_pol: 4,
-    sign: '4539078c5e2170a53797fa26d5fddd44246ba9cb4200aea2705e2a3672b88c28',
+    sign: 'c4a19bd0c817fa265ad1671bf4377438c8efc69b6fbd39d8c60ca4f6c07d470b',
   };
 
   it('sleep', async () => {
@@ -55,17 +55,6 @@ describe('payu.js', () => {
       const amount = key;
       chai.assert.equal(expected, payu.getHashableAmount(amount));
     }
-  });
-
-  it('paymentReceived', async () => {
-    const req = {
-      body: payment,
-      connection: {
-        remoteAddress: 'aoeu',
-      },
-      headers: 'aoeu',
-    };
-    await payu.paymentReceived(req);
   });
 
   it('awaitPullPayment', async () => {
@@ -106,18 +95,6 @@ describe('payu.js', () => {
     const pull2 = await payu.awaitPullPayment('aoeu');
     chai.assert.equal(null, pull2);
     server2.close();
-  });
-
-  it('pushPayment', async () => {
-    const actualPayment = await payu.pushPayment(payment.reference_sale);
-    chai.assert.equal(
-      actualPayment.requestDate.getTime(),
-      payment.transaction_date
-    );
-    chai.assert.equal(actualPayment.value, payment.value);
-    chai.assert.equal(actualPayment.currency, payment.currency);
-    chai.assert.equal(actualPayment.status, payment.response_message_pol);
-    chai.assert.equal(actualPayment.error, payment.error_message_bank);
   });
 
   it('pullPayment', async () => {

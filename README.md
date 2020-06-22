@@ -18,7 +18,7 @@ npm install -g nodemon
 
 ## run
 
-Since owl creates Ethereum transactions on its own, you need to provide it the private key of an Ethereum account. Store it in `.privateKey`
+Since owl creates Ethereum transactions on its own, you need to provide it the private key of a funded Ethereum account. Store it in `.privateKey`
 
 ```bash
 
@@ -57,7 +57,17 @@ $ mongo coinosis
 2. install [heroku CLI](https://devcenter.heroku.com/articles/heroku-cli#download-and-install)
 4. `MONGODB_URI=$(heroku config:get MONGODB_URI -a <your-app-name>) scripts/initialize.sh`
 
-## migrate data from production
+## backup the production database & restore to any database
+
+```bash
+
+$ scripts/backup.sh
+> backup created at ./backup/2020-06-22T18:17:32-05:00
+$ scripts/restore.sh testing backup/2020-06-22T18\:17\:32-05\:00/
+
+```
+
+## migrate data from production to testing to development
 
 ```bash
 

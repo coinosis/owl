@@ -42,11 +42,13 @@ class HttpError extends Error {
 }
 
 const handleError = (err, next) => {
-  console.error(err);
   if (err.name === 'HttpError') {
+    const { status, code, object } = err;
+    console.error({ status, code, object });
     next(err);
   }
   else {
+    console.error(err);
     next(new Error());
   }
 }

@@ -2,6 +2,7 @@ const chai = require('chai');
 const assert = chai.assert;
 const fetch = require('node-fetch');
 const Web3 = require('web3');
+const { errors } = require('../src/control.js');
 
 const url = 'http://localhost:5678';
 const web3 = new Web3();
@@ -30,19 +31,6 @@ const privateKeys = [
   '6aa0113aa3bc0265cd20337a74aff8d3e04cdc45304c919b078ff600d53b24b9',
 ];
 const claps = [2, 4, 3];
-
-const MALFORMED_SIGNATURE = 'malformed-signature';
-const UNAUTHORIZED = 'unauthorized';
-const INSUFFICIENT_PARAMS = 'insufficient-params';
-const WRONG_PARAM_VALUES = 'wrong-param-values';
-const USER_NONEXISTENT = 'user-nonexistent';
-const PAID_EVENT = 'paid-event';
-const SERVICE_UNAVAILABLE = 'service-unavailable';
-const NOT_FOUND = 'not-found';
-const ADDRESS_EXISTS = 'address-exists';
-const DISTRIBUTION_EXISTS = 'distribution-exists';
-const EVENT_NONEXISTENT = 'event-nonexistent';
-const DISTRIBUTION_NONEXISTENT = 'distribution-nonexistent';
 
 const verifyUser = data => {
   assert.ok(
@@ -346,7 +334,7 @@ describe('PUT /distribution/event', () => {
     );
     assert.isNotOk(response.ok, response.status);
     const message = await response.json();
-    assert.equal(message, DISTRIBUTION_EXISTS);
+    assert.equal(message, errors.DISTRIBUTION_EXISTS);
   });
   it('fails with event nonexistent', async () => {
     const response = await fetch(
@@ -355,7 +343,7 @@ describe('PUT /distribution/event', () => {
     );
     assert.isNotOk(response.ok, response.status);
     const message = await response.json();
-    assert.equal(message, EVENT_NONEXISTENT);
+    assert.equal(message, errors.EVENT_NONEXISTENT);
   });
 });
 
@@ -371,7 +359,7 @@ describe('GET /distribution/event', () => {
     const response = await fetch(`${url}/distribution/blah`);
     assert.isNotOk(response.ok);
     const data = await response.json();
-    assert.equal(DISTRIBUTION_NONEXISTENT, data);
+    assert.equal(errors.DISTRIBUTION_NONEXISTENT, data);
   });
 });
 

@@ -128,8 +128,7 @@ const verifySignature = (payload, signer) => {
   const v = util.bufferToInt(rawTx[6]);
   const r = rawTx[7];
   const s = rawTx[8];
-  const chainId = Math.floor((v - 35) / 2);
-  if (chainId < 0) chainId = 0;
+  const chainId = Math.max(Math.floor((v - 35) / 2), 0);
   const items = [
     ...rawTx.splice(0, 6),
     util.toBuffer(chainId),

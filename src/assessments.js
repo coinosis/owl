@@ -9,7 +9,6 @@ const {
   isNumberArray,
 } = require('./control.js');
 const db = require('./db.js');
-const web3 = require('./web3.js');
 const { clapFor } = require('./eth.js');
 
 // only for pre-v2 events

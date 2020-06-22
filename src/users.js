@@ -40,10 +40,10 @@ const putUser = async req => {
   await checkUserExists(address);
   const { email, telegram } = req.body;
   if (email) {
-    const result = await db.users.updateOne({ address }, { $set: { email }});
+    await db.users.updateOne({ address }, { $set: { email }});
   }
   if (telegram) {
-    const result = await db.users.updateOne({ address }, { $set: { telegram }});
+    await db.users.updateOne({ address }, { $set: { telegram }});
   }
   const user = await db.users.findOne({ address });
   return user;
@@ -90,8 +90,7 @@ const postUser = async req => {
   if (effect.result.ok && effect.ops.length) {
     return effect.ops[0];
   } else {
-    throw new HttpError(500, errors.SERVICE_UNAVAILABLE);
-    console.error(effect);
+    throw new HttpError(500, errors.SERVICE_UNAVAILABLE, { effect });
   }
 }
 

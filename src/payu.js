@@ -197,8 +197,9 @@ const getPayments = async (event, user) => {
     const referenceCode = `${event}:${user}:${counter}:${environmentId}`;
     pull = await pullPayment(referenceCode);
     push = await pushPayment(referenceCode);
+    const transaction = await db.transactions.findOne({ referenceCode });
     if (pull === null && push === null) break;
-    const payment = { referenceCode, pull, push };
+    const payment = { referenceCode, pull, push, transaction };
     paymentList.push(payment);
     counter ++;
   } while (true);

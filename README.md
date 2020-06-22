@@ -32,9 +32,10 @@ If running for the first time, run `scripts/initialize.sh`.
 
 ## Submit your changes
 
-1. Add the relevant tests in `test.js`
+1. Add the relevant tests in the `test` folder
 2. Make sure all tests are successful: `npm test`
-3. Create a pull request targeting the `dev` branch
+3. Correct any linting errors: `npx eslint .`
+4. Create a pull request targeting the `dev` branch
 
 ## interact with the database
 

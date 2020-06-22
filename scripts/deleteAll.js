@@ -6,5 +6,7 @@ db.assessments.deleteMany({});
 db.assessments.dropIndexes();
 db.payments.deleteMany({});
 db.payments.dropIndexes();
+db.transactions.deleteMany({});
+db.transactions.dropIndexes();
 db.distributions.deleteMany({});
 db.distributions.dropIndexes();

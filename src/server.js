@@ -2,7 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const { handleError } = require('./control.js');
 const { getETHPrice, getGasPrice } = require('./eth.js');
-const { paymentReceived, getPayments, getHash } = require('./payu.js');
+const {
+  paymentReceived,
+  getPayments,
+  getHash,
+  setClosable,
+  getClosable,
+} = require('./payu.js');
 const { getUsers, getUser, putUser, postUser } = require('./users.js');
 const { getEvents, getEvent, getAttendees, postEvent } = require('./events.js');
 const { getDistribution, putDistribution } = require('./distributions.js');
@@ -45,6 +51,26 @@ app.post('/payu', async (req, res, next) => {
   try {
     await paymentReceived(req);
     res.status(200).end();
+  } catch (err) {
+    handleError(err, next);
+  }
+});
+
+app.get('/close', (req, res, next) => {
+  try {
+    res.send("cierra esta pestaña para regresar a coinosis.");
+    const { referenceCode } = req.query;
+    setClosable(referenceCode);
+  } catch (err) {
+    handleError(err, next);
+  }
+});
+
+app.get('/closable/:referenceCode', async (req, res, next) => {
+  try {
+    const { referenceCode } = req.params;
+    const closable = await getClosable(referenceCode);
+    res.json(closable);
   } catch (err) {
     handleError(err, next);
   }

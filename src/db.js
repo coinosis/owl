@@ -9,6 +9,7 @@ const events = db.collection('events');
 const assessments = db.collection('assessments');
 const payments = db.collection('payments');
 const transactions = db.collection('transactions');
+const closable = db.collection('closable');
 const distributions = db.collection('distributions');
 
 const disconnect = () => {
@@ -21,6 +22,7 @@ module.exports = {
   assessments,
   payments,
   transactions,
+  closable,
   distributions,
   disconnect,
 };

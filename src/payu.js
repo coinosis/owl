@@ -45,6 +45,15 @@ const getHashableAmount = amount => {
   }
 }
 
+const setClosable = referenceCode => {
+  db.closable.insertOne({ referenceCode });
+}
+
+const getClosable = async referenceCode => {
+  const closable = await db.closable.findOne({ referenceCode });
+  return closable != null;
+}
+
 const paymentReceived = async req => {
   const params = {
     sign: isStringLongerThan(60),
@@ -233,4 +242,6 @@ module.exports = {
   checkFee,
   sleep,
   awaitPullPayment,
+  setClosable,
+  getClosable,
 }

@@ -42,6 +42,17 @@ describe('payu.js', () => {
     }
   });
 
+  it('setClosable', () => {
+    payu.setClosable(payment.reference_sale);
+  });
+
+  it('getClosable', async () => {
+    const closable = await payu.getClosable(payment.reference_sale);
+    chai.assert.equal(closable, true);
+    const notClosable = await payu.getClosable('aoeu');
+    chai.assert.equal(notClosable, false);
+  });
+
   it('getHashableAmount', () => {
     const amounts = {
       '25': '25',

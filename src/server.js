@@ -26,7 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 app.get('/', (req, res) => {
-  res.end();
+  res.json('ZdLpo');
 });
 
 app.get('/eth/price', async (req, res, next) => {

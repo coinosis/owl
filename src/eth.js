@@ -99,7 +99,7 @@ const sendRawTx = async ({ to, value, data, gasPrice }) => {
   const txParams = {
     nonce: web3.utils.toHex(nonce),
     gasPrice: web3.utils.toHex(gasPrice),
-    gasLimit: web3.utils.toHex(110000),
+    gasLimit: web3.utils.toHex(210000),
     to,
     value: web3.utils.toHex(value),
     data,

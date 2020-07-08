@@ -25,6 +25,18 @@
   },
   "testing": {
     "environmentId": "testing",
+    "payUReports": "https://sandbox.api.payulatam.com/reports-api/4.0/service.cgi",
+    "etherscanKey": "K33HJVG46X7392MMEVXXYCFERNVK77I13T",
+    "web3Provider": "https://ropsten.infura.io/v3/58a2b59a8caa4c2e9834f8c3dd228b06",
+    "chain": "ropsten",
+    "account": "0x9fCA45d4fF08e62B3084a68353BE55bD905c961A",
+    "merchantId": 508029,
+    "feeThreshold": 0.9,
+    "pullAttempts": 100,
+    "pullInterval": 2000
+  },
+  "staging": {
+    "environmentId": "staging",
     "payUReports": "https://api.payulatam.com/reports-api/4.0/service.cgi",
     "etherscanKey": "K33HJVG46X7392MMEVXXYCFERNVK77I13T",
     "web3Provider": "https://ropsten.infura.io/v3/58a2b59a8caa4c2e9834f8c3dd228b06",

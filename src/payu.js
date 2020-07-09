@@ -12,6 +12,7 @@ const {
 } = require('./settings.js');
 const {
   HttpError,
+  InternalError,
   errors,
   checkParams,
   isPositiveNumber,
@@ -81,9 +82,6 @@ const paymentReceived = async req => {
     console.error({ actualHash, expectedHash });
     throw new HttpError(401, errors.UNAUTHORIZED);
   }
-  if (state == APPROVED) {
-    await processPayment({ referenceCode, amount, currency });
-  }
   delete req.headers['http.useragent'];
   db.payments.insertOne({
     body: req.body,
@@ -94,6 +92,7 @@ const paymentReceived = async req => {
     },
     headers: req.headers,
   });
+  return { state, referenceCode, amount, currency };
 };
 
 const awaitPullPayment = async referenceCode => {
@@ -109,25 +108,28 @@ const awaitPullPayment = async referenceCode => {
   return pull;
 }
 
-const processPayment = async ({ referenceCode, amount, currency }) => {
-  if (currency !== USD) throw new HttpError(400, errors.INVALID_CURRENCY);
+const processPayment = async ({ state, referenceCode, amount, currency }) => {
+  if (state != APPROVED) throw new InternalError(errors.PAYMENT_NOT_APPROVED);
+  if (currency !== USD) throw new InternalError(errors.INVALID_CURRENCY);
+  const txCount = await db.transactions.countDocuments({ referenceCode });
+  if (txCount > 0) throw new InternalError(errors.PAYMENT_ALREADY_PROCESSED);
   const [ eventURL, userAddress ] = referenceCode.split(':');
   const event = await db.events.findOne({ url: eventURL });
-  if (event === null) throw new HttpError(404, errors.EVENT_NONEXISTENT);
+  if (event === null) throw new InternalError(errors.EVENT_NONEXISTENT);
   const { feeWei, address: contractAddress } = event;
   const ethPrice = await getETHPrice();
   const amountWei = await usdToWei(amount);
   const correctPushFee = checkFee({ expected: feeWei, actual: amountWei });
   if (!correctPushFee) {
-    throw new HttpError(400, errors.INVALID_FEE, { feeWei, amountWei });
+    throw new InternalError(errors.INVALID_FEE, { feeWei, amountWei });
   }
   const pullPayment = await awaitPullPayment(referenceCode);
   if (pullPayment === null) {
-    throw new HttpError(404, errors.PAYMENT_NONEXISTENT);
+    throw new InternalError(errors.PAYMENT_NONEXISTENT);
   }
   const { status, currency: pullCurrency, value: pullAmount } = pullPayment;
   if (status !== 'APPROVED' || pullCurrency !== USD || pullAmount != amount) {
-    throw new HttpError(400, errors.INVALID_PAYMENT);
+    throw new InternalError(errors.INVALID_PAYMENT);
   }
   const result = await registerFor(contractAddress, userAddress, feeWei);
   const feeETH = web3.utils.fromWei(feeWei);
@@ -234,6 +236,7 @@ const getHash = async ({ referenceCode, amount, currency, state }) => {
 
 module.exports = {
   paymentReceived,
+  processPayment,
   getPayments,
   getHash,
   pushPayment,

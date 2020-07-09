@@ -4,6 +4,7 @@ const { handleError } = require('./control.js');
 const { getETHPrice, getGasPrice } = require('./eth.js');
 const {
   paymentReceived,
+  processPayment,
   getPayments,
   getHash,
   setClosable,
@@ -49,8 +50,14 @@ app.get('/eth/gas', async (req, res, next) => {
 
 app.post('/payu', async (req, res, next) => {
   try {
-    await paymentReceived(req);
+    const {
+      state,
+      referenceCode,
+      amount,
+      currency,
+    } = await paymentReceived(req);
     res.status(200).end();
+    await processPayment({ state, referenceCode, amount, currency });
   } catch (err) {
     handleError(err, next);
   }

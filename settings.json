@@ -8,8 +8,8 @@
     "account": "0x9fCA45d4fF08e62B3084a68353BE55bD905c961A",
     "merchantId": 508029,
     "feeThreshold": 0.9,
-    "pullAttempts": 100,
-    "pullInterval": 2000
+    "pullAttempts": 3600,
+    "pullInterval": 10000
   },
   "unit": {
     "environmentId": "unit",
@@ -32,8 +32,8 @@
     "account": "0x9fCA45d4fF08e62B3084a68353BE55bD905c961A",
     "merchantId": 508029,
     "feeThreshold": 0.9,
-    "pullAttempts": 100,
-    "pullInterval": 2000
+    "pullAttempts": 3600,
+    "pullInterval": 10000
   },
   "staging": {
     "environmentId": "staging",
@@ -44,8 +44,8 @@
     "account": "0x9fCA45d4fF08e62B3084a68353BE55bD905c961A",
     "merchantId": 845239,
     "feeThreshold": 0.9,
-    "pullAttempts": 100,
-    "pullInterval": 2000
+    "pullAttempts": 3600,
+    "pullInterval": 10000
   },
   "production": {
     "environmentId": "",
@@ -56,7 +56,7 @@
     "account": "0x9fCA45d4fF08e62B3084a68353BE55bD905c961A",
     "merchantId": 845239,
     "feeThreshold": 0.9,
-    "pullAttempts": 100,
-    "pullInterval": 2000
+    "pullAttempts": 3600,
+    "pullInterval": 10000
   }
 }

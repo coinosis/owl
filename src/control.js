@@ -29,6 +29,8 @@ const errors = {
   WRONG_EVENT_VERSION: 'wrong-event-version',
   PAYMENT_NONEXISTENT: 'payment-nonexistent',
   INVALID_PAYMENT: 'invalid-payment',
+  PAYMENT_NOT_APPROVED: 'payment-not-approved',
+  PAYMENT_ALREADY_PROCESSED: 'payment-already-processed',
 };
 
 class HttpError extends Error {
@@ -41,11 +43,23 @@ class HttpError extends Error {
   }
 }
 
+class InternalError extends Error {
+  constructor(code, object) {
+    super(code);
+    this.name = 'InternalError';
+    this.code = code;
+    this.object = object;
+  }
+}
+
 const handleError = (err, next) => {
   if (err.name === 'HttpError') {
     const { status, code, object } = err;
     console.error({ status, code, object });
     next(err);
+  } else if (err.name === 'InternalError') {
+    const { code, object } = err;
+    console.error({ code, object });
   }
   else {
     console.error(err);
@@ -125,6 +139,7 @@ const checkOptionalParams = async (expected, req) => {
 
 module.exports = {
   HttpError,
+  InternalError,
   handleError,
   statuses,
   errors,

@@ -1,3 +1,5 @@
+![heroku](http://heroku-badge.herokuapp.com/?app=coinosis&svg=1)
+
 # Install owl
 
 ## prerequisite

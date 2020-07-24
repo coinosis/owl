@@ -58,7 +58,7 @@ const postAssessment = async req => {
     throw new HttpError(400, errors.LENGTH_MISMATCH);
   }
   const totalClaps = claps.reduce((a, b) => a + b);
-  if (totalClaps > addresses.length * 3) {
+  if (totalClaps > 100) {
     throw new HttpError(400, errors.TOO_MANY_CLAPS);
   }
   const result = await clapFor(event.address, senderAddress, addresses, claps);

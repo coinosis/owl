@@ -11,30 +11,34 @@ describe('eth.js', () => {
     console.log(await eth.usdToWei(250));
   });
 
-  it('sendRawTx', async () => {
+  describe('sendRawTx', () => {
 
-    const tx = {
-      to: '0x35ef9857E5e0E8B9Ac3f559CE6319C2DBe49dB29',
-      value: '2',
-      data: '0x1234abcd',
-      gasPrice: '50000000000',
-    };
+    it('success', async () => {
 
-    const handler = payload => {
-      chai.assert.ok(verifySignature(payload, account));
-      const fields = getFields(payload);
-      for (const key in tx) {
-        if (key === 'to') {
-          chai.assert.equal(tx[key].toLowerCase(), fields[key].toLowerCase());
-        } else {
-          chai.assert.equal(tx[key], fields[key]);
+      const tx = {
+        to: '0x35ef9857E5e0E8B9Ac3f559CE6319C2DBe49dB29',
+        value: '2',
+        data: '0x1234abcd',
+        gasPrice: '50000000000',
+      };
+
+      const handler = payload => {
+        chai.assert.ok(verifySignature(payload, account));
+        const fields = getFields(payload);
+        for (const key in tx) {
+          if (key === 'to') {
+            chai.assert.equal(tx[key].toLowerCase(), fields[key].toLowerCase());
+          } else {
+            chai.assert.equal(tx[key], fields[key]);
+          }
         }
       }
-    }
 
-    const server = listen(handler);
-    await eth.sendRawTx(tx);
-    server.close();
+      const server = listen(handler);
+      await eth.sendRawTx(tx);
+      server.close();
+
+    });
 
   });
 

@@ -13,14 +13,14 @@ describe('eth.js', () => {
 
   describe('sendRawTx', () => {
 
-    it('success', async () => {
+    const tx = {
+      to: '0x35ef9857E5e0E8B9Ac3f559CE6319C2DBe49dB29',
+      value: '2',
+      data: '0x1234abcd',
+      gasPrice: '50000000000',
+    };
 
-      const tx = {
-        to: '0x35ef9857E5e0E8B9Ac3f559CE6319C2DBe49dB29',
-        value: '2',
-        data: '0x1234abcd',
-        gasPrice: '50000000000',
-      };
+    it('success', async () => {
 
       const handler = payload => {
         chai.assert.ok(verifySignature(payload, account));
@@ -32,10 +32,37 @@ describe('eth.js', () => {
             chai.assert.equal(tx[key], fields[key]);
           }
         }
+        return {
+          result: '0xeb3adc603eae61d9bd19845cc959289ab775b96e37312433145e6dfa8a'
+            + 'd6bffc'
+        };
       }
 
       const server = listen(handler);
       await eth.sendRawTx(tx);
+      server.close();
+
+    });
+
+    it('insufficient funds', async () => {
+
+      const handler = payload => {
+        return {
+          error: {
+            message: 'sender doesn\'t have enough funds to send tx. The '
+              + 'upfront cost is: 50000000000000002 and the sender\'s account '
+              + 'only has: 0',
+            code: -32000,
+            data: {
+              stack: '...',
+              name: 'Error',
+            },
+          }
+        };
+      }
+
+      const server = listen(handler);
+      const result = await eth.sendRawTx(tx);
       server.close();
 
     });
@@ -55,6 +82,7 @@ describe('eth.js', () => {
     const handler = payload => {
       const fields = getFields(payload);
       chai.assert.equal(fields.data, expectedData);
+      return { result: '' };
     }
 
     const server = listen(handler);
@@ -90,6 +118,7 @@ describe('eth.js', () => {
     const handler = payload => {
       const fields = getFields(payload);
       chai.assert.equal(fields.data, expectedData);
+      return { result: '' };
     }
 
     const server = listen(handler);
@@ -108,21 +137,19 @@ const listen = handler => {
   const server = app.listen(8555);
   app.post('/', (req, res) => {
     const { method, id, params: [ payload ] } = req.body;
-    const result =
-          method === 'eth_getTransactionCount'
-          ? "0x02"
-          : method === 'eth_call'
-          ? ""
-          : ""
+    const data =
+          method === 'eth_sendRawTransaction'
+          ? handler(payload)
+          : method === 'eth_getTransactionCount'
+          ? { result: '0x02' }
+          : { result: '' };
     const body = {
       jsonrpc: "2.0",
       id,
-      result,
+      ...data,
     };
     res.json(body);
-    if (method === 'eth_sendRawTransaction') {
-      handler(payload);
-    }
+
   });
   return server;
 }

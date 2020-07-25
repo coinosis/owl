@@ -35,7 +35,7 @@ If running for the first time, run `scripts/initialize.sh`.
 ## Submit your changes
 
 1. Add the relevant tests in the `test` folder
-2. Make sure all tests are successful: `npm test`
+2. Make sure all tests are successful: `npm test` (you can run a specific test file with `npm test -- test/<file>.js`)
 3. Correct any linting errors: `npx eslint .`
 4. Create a pull request targeting the `dev` branch
 

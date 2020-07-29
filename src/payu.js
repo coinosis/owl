@@ -100,8 +100,8 @@ const awaitPullPayment = async referenceCode => {
   let pull = await pullPayment(referenceCode);
   while(pull === null && attempts < pullAttempts) {
     attempts++;
-    console.log(`attempt # ${attempts}`);
     await sleep(pullInterval);
+    console.log(`attempt # ${attempts}`);
     pull = await pullPayment(referenceCode);
     console.log(pull);
   }
@@ -139,7 +139,7 @@ const processPayment = async ({ state, referenceCode, amount, currency }) => {
     ethPrice,
     amountPaid: amount,
     currency,
-    hash: result.tx,
+    ...result,
   };
   db.transactions.insertOne(transaction);
 }

@@ -74,11 +74,21 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
     gasPrice: gasPrice.propose,
   };
   const response = await sendRawTx(tx);
-  const result = {
-    address: attendee,
-    status: statuses.SENT,
-    tx: response.result,
-  };
+  let result = { address: attendee };
+  if (response.error) {
+    result = {
+      ...result,
+      error: response.error.message,
+      status: statuses.NOT_SENT,
+    };
+  } else {
+    result = {
+      ...result,
+      tx: response.result,
+      status: statuses.SENT,
+    }
+  }
+
   console.log(result);
   return result;
 
@@ -131,7 +141,7 @@ const sendRawTx = async ({ to, value, data, gasPrice }) => {
     jsonrpc: '2.0',
     method: 'eth_sendRawTransaction',
     params: [ hexTx ],
-    id: 123,
+    id: nonce,
   };
   const body = JSON.stringify(object);
   const options = {

@@ -3,6 +3,7 @@ const web3 = require('./web3.js');
 const statuses = {
   ALREADY_REGISTERED: 'already-registered',
   SENT: 'sent',
+  NOT_SENT: 'not-sent',
 };
 
 const errors = {

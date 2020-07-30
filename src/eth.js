@@ -33,7 +33,8 @@ const getETHPrice = async () => {
 const usdToWei = async usd => {
   const ethPrice = await getETHPrice();
   const eth = usd / ethPrice;
-  const wei = web3.utils.toWei(String(eth));
+  const truncatedETH = eth.toFixed(18);
+  const wei = web3.utils.toWei(truncatedETH);
   return wei;
 }
 

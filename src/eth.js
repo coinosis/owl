@@ -15,6 +15,20 @@ const ETHPrice = `${etherscanAPI}?module=stats&action=ethprice`
 const gasTracker = `${etherscanAPI}?module=gastracker&action=gasoracle`
       + `&apiKey=${etherscanKey}`;
 
+let nonce;
+const fetchNonce = async () => {
+  nonce = Number(await web3.eth.getTransactionCount(account));
+  console.log(`obtained nonce ${nonce}`);
+}
+fetchNonce();
+
+const getNonce = () => {
+  const oldNonce = nonce;
+  nonce += 1;
+  console.log(`using nonce ${oldNonce}`);
+  return oldNonce;
+}
+
 const getETHPrice = async () => {
   const response = await fetch(ETHPrice);
   if (!response.ok) {
@@ -82,6 +96,10 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
       error: response.error.message,
       status: statuses.NOT_SENT,
     };
+    if (result.error.match('nonce')) {
+      fetchNonce();
+      console.log(response);
+    }
   } else {
     result = {
       ...result,
@@ -119,7 +137,7 @@ const clapFor = async (contractAddress, clapper, attendees, claps) => {
 
 const sendRawTx = async ({ to, value, data, gasPrice }) => {
 
-  const nonce = await web3.eth.getTransactionCount(account);
+  const nonce = getNonce();
 
   const txParams = {
     nonce: web3.utils.toHex(nonce),

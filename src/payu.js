@@ -67,10 +67,11 @@ const paymentReceived = async req => {
   const {
     sign: actualHash,
     reference_sale: referenceCode,
-    value: amount,
+    value,
     currency,
     state_pol: state,
   } = req.body;
+  const amount = value.substring(0, 20);
   const hashableAmount = getHashableAmount(amount);
   const expectedHash = await getHash({
     referenceCode,

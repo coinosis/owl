@@ -1,6 +1,8 @@
 const eth = require('../src/eth.js');
 const db = require('../src/db.js');
 
+eth.initializeNonce();
+
 const findEvent = async eventURL => {
   const event = await db.events.findOne({ url: eventURL });
   return event;

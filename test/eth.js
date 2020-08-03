@@ -7,6 +7,12 @@ const { account } = require('../src/settings.js');
 
 describe('eth.js', () => {
 
+  it('initializeNonce', async () => {
+    const server = listen();
+    await eth.initializeNonce();
+    server.close();
+  });
+
   it('usdToWei', async () => {
     console.log(await eth.usdToWei(250));
   });

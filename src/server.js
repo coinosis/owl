@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { handleError } = require('./control.js');
-const { getETHPrice, getGasPrice } = require('./eth.js');
+const { initializeNonce, getETHPrice, getGasPrice } = require('./eth.js');
 const {
   paymentReceived,
   processPayment,
@@ -25,6 +25,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+initializeNonce();
 
 app.get('/', (req, res) => {
   res.json('KQfvp');

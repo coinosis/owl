@@ -16,11 +16,10 @@ const gasTracker = `${etherscanAPI}?module=gastracker&action=gasoracle`
       + `&apiKey=${etherscanKey}`;
 
 let nonce;
-const fetchNonce = async () => {
+const initializeNonce = async () => {
   nonce = Number(await web3.eth.getTransactionCount(account));
   console.log(`obtained nonce ${nonce}`);
 }
-fetchNonce();
 
 const getNonce = () => {
   const oldNonce = nonce;
@@ -177,6 +176,7 @@ const sendRawTx = async ({ to, value, data, gasPrice }) => {
 }
 
 module.exports = {
+  initializeNonce,
   getETHPrice,
   getGasPrice,
   registerFor,

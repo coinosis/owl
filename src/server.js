@@ -1,23 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const { handleError } = require('./control.js');
-const { initializeNonce, getETHPrice, getGasPrice } = require('./eth.js');
-const {
-  paymentReceived,
-  processPayment,
-  getPayments,
-  getHash,
-  setClosable,
-  getClosable,
-} = require('./payu.js');
-const { getUsers, getUser, putUser, postUser } = require('./users.js');
-const { getEvents, getEvent, getAttendees, postEvent } = require('./events.js');
-const { getDistribution, putDistribution } = require('./distributions.js');
-const {
-  getAssessments,
-  getAssessment,
-  postAssessment,
-} = require('./assessments.js');
+const eth = require('./eth.js');
+const payu = require('./payu.js');
+const users = require('./users.js');
+const events = require('./events.js');
+const distributions = require('./distributions.js');
+const assessments = require('./assessments.js');
 
 const port = process.env.PORT || 3000;
 
@@ -25,7 +14,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-initializeNonce();
+eth.initializeNonce();
 
 app.get('/', (req, res) => {
   res.json('KQfvp');
@@ -33,7 +22,7 @@ app.get('/', (req, res) => {
 
 app.get('/eth/price', async (req, res, next) => {
   try {
-    const price = await getETHPrice();
+    const price = await eth.getETHPrice();
     res.json(price);
   } catch (err) {
     handleError(err, next)
@@ -42,7 +31,7 @@ app.get('/eth/price', async (req, res, next) => {
 
 app.get('/eth/gas', async (req, res, next) => {
   try {
-    const price = await getGasPrice();
+    const price = await eth.getGasPrice();
     res.json(price);
   } catch (err) {
     handleError(err, next)
@@ -56,9 +45,9 @@ app.post('/payu', async (req, res, next) => {
       referenceCode,
       amount,
       currency,
-    } = await paymentReceived(req);
+    } = await payu.paymentReceived(req);
     res.status(200).end();
-    await processPayment({ state, referenceCode, amount, currency });
+    await payu.processPayment({ state, referenceCode, amount, currency });
   } catch (err) {
     handleError(err, next);
   }
@@ -68,7 +57,7 @@ app.get('/close', (req, res, next) => {
   try {
     res.send("cierra esta pestaña para regresar a coinosis.");
     const { referenceCode } = req.query;
-    setClosable(referenceCode);
+    payu.setClosable(referenceCode);
   } catch (err) {
     handleError(err, next);
   }
@@ -77,7 +66,7 @@ app.get('/close', (req, res, next) => {
 app.get('/closable/:referenceCode', async (req, res, next) => {
   try {
     const { referenceCode } = req.params;
-    const closable = await getClosable(referenceCode);
+    const closable = await payu.getClosable(referenceCode);
     res.json(closable);
   } catch (err) {
     handleError(err, next);
@@ -89,7 +78,7 @@ app.get(
   async (req, res, next) => {
     try {
       const { event, user } = req.params;
-      const paymentList = await getPayments(event, user);
+      const paymentList = await payu.getPayments(event, user);
       res.json(paymentList);
     } catch (err) {
       handleError(err, next);
@@ -100,7 +89,7 @@ app.get(
 app.post('/payu/hash', async (req, res, next) => {
   try {
     const { body } = req;
-    const hash = await getHash(body);
+    const hash = await payu.getHash(body);
     res.json(hash);
   } catch (err) {
     handleError(err, next)
@@ -109,8 +98,8 @@ app.post('/payu/hash', async (req, res, next) => {
 
 app.get('/users', async (req, res, next) => {
   try {
-    const users = await getUsers();
-    res.json(users);
+    const userList = await users.getUsers();
+    res.json(userList);
   } catch (err) {
     handleError(err, next);
   }
@@ -119,7 +108,7 @@ app.get('/users', async (req, res, next) => {
 app.get('/user/:address(0x[a-fA-F0-9]{40})', async (req, res, next) => {
   try {
     const { address } = req.params;
-    const user = await getUser(address);
+    const user = await users.getUser(address);
     res.json(user);
   } catch (err) {
     handleError(err, next);
@@ -128,7 +117,7 @@ app.get('/user/:address(0x[a-fA-F0-9]{40})', async (req, res, next) => {
 
 app.put('/user/:address(0x[a-fA-F0-9]{40})', async (req, res, next) => {
   try {
-    const user = await putUser(req);
+    const user = await users.putUser(req);
     res.json(user);
   } catch (err) {
     handleError(err, next);
@@ -137,7 +126,7 @@ app.put('/user/:address(0x[a-fA-F0-9]{40})', async (req, res, next) => {
 
 app.post('/users', async (req, res, next) => {
   try {
-    const result = await postUser(req);
+    const result = await users.postUser(req);
     res.status(201).json(result);
   } catch (err) {
     handleError(err, next);
@@ -146,8 +135,8 @@ app.post('/users', async (req, res, next) => {
 
 app.get('/events', async (req, res, next) => {
   try {
-    const events = await getEvents();
-    res.json(events);
+    const eventList = await events.getEvents();
+    res.json(eventList);
   } catch (err) {
     handleError(err, next);
   }
@@ -156,7 +145,7 @@ app.get('/events', async (req, res, next) => {
 app.get('/event/:url([a-z0-9-]{1,60})', async (req, res, next) => {
   try {
     const { url } = req.params;
-    const event = await getEvent(url);
+    const event = await events.getEvent(url);
     res.json(event);
   } catch (err) {
     handleError(err, next);
@@ -166,7 +155,7 @@ app.get('/event/:url([a-z0-9-]{1,60})', async (req, res, next) => {
 app.get('/event/:url([a-z0-9-]{1,60})/attendees', async (req, res, next) => {
   try {
     const { url } = req.params;
-    const attendees = await getAttendees(url);
+    const attendees = await events.getAttendees(url);
     res.json(attendees);
   } catch (err) {
     handleError(err, next);
@@ -175,7 +164,7 @@ app.get('/event/:url([a-z0-9-]{1,60})/attendees', async (req, res, next) => {
 
 app.post('/events', async (req, res, next) => {
   try {
-    const result = await postEvent(req);
+    const result = await events.postEvent(req);
     res.status(201).json(result);
   } catch (err) {
     handleError(err, next);
@@ -185,7 +174,7 @@ app.post('/events', async (req, res, next) => {
 app.get('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
   try {
     const { event } = req.params;
-    const distribution = await getDistribution(event);
+    const distribution = await distributions.getDistribution(event);
     res.json(distribution);
   } catch (err) {
     handleError(err, next);
@@ -195,7 +184,7 @@ app.get('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
 app.put('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
   try {
     const { event } = req.params;
-    await putDistribution(event);
+    await distributions.putDistribution(event);
     res.status(201).end();
   } catch (err) {
     handleError(err, next);
@@ -205,8 +194,8 @@ app.put('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
 app.get('/assessments/:event([a-z0-9-]{1,60})', async (req, res, next) => {
   try {
     const { event } = req.params;
-    const assessments = await getAssessments(event);
-    res.json(assessments);
+    const assessmentList = await assessments.getAssessments(event);
+    res.json(assessmentList);
   } catch (err) {
     handleError(err, next);
   }
@@ -217,7 +206,7 @@ app.get(
   async (req, res, next) => {
     try {
       const { event, sender } = req.params;
-      const assessment = await getAssessment(event, sender);
+      const assessment = await assessments.getAssessment(event, sender);
       res.json(assessment);
     } catch (err) {
       handleError(err, next);
@@ -227,7 +216,7 @@ app.get(
 
 app.post('/assessments', async (req, res, next) => {
   try {
-    const result = await postAssessment(req);
+    const result = await assessments.postAssessment(req);
     res.status(201).json(result);
   } catch (err) {
     handleError(err, next);

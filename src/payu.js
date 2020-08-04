@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 const crypto = require('crypto');
 const util = require('util');
-const db = require('./db.js');
+const dbModule = require('./db.js');
 const {
   payUReports,
   environmentId,
@@ -21,6 +21,11 @@ const {
 } = require('./control.js');
 const web3 = require('./web3.js');
 const { getETHPrice, registerFor, usdToWei } = require('./eth.js');
+
+let db;
+const initialize = () => {
+  db = dbModule.getCollections();
+}
 
 const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
 const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
@@ -235,6 +240,7 @@ const getHash = async ({ referenceCode, amount, currency, state }) => {
 };
 
 module.exports = {
+  initialize,
   paymentReceived,
   processPayment,
   getPayments,

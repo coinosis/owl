@@ -1,6 +1,11 @@
 const { HttpError, errors } = require('./control.js');
-const db = require('./db.js');
+const dbModule = require('./db.js');
 const web3 = require('./web3.js');
+
+let db;
+const initialize = () => {
+  db = dbModule.getCollections();
+}
 
 const getEvents = async () => {
   const events = await db.events.find().toArray();
@@ -159,4 +164,4 @@ const postEvent = async req => {
   }
 }
 
-module.exports = { getEvents, getEvent, getAttendees, postEvent };
+module.exports = { initialize, getEvents, getEvent, getAttendees, postEvent };

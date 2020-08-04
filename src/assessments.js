@@ -8,8 +8,13 @@ const {
   isAddressArray,
   isNumberArray,
 } = require('./control.js');
-const db = require('./db.js');
+const dbModule = require('./db.js');
 const { clapFor } = require('./eth.js');
+
+let db;
+const initialize = () => {
+  db = dbModule.getCollections();
+}
 
 // only for pre-v2 events
 const getAssessments = async event => {
@@ -65,4 +70,4 @@ const postAssessment = async req => {
   return result;
 }
 
-module.exports = { getAssessments, getAssessment, postAssessment };
+module.exports = { initialize, getAssessments, getAssessment, postAssessment };

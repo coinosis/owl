@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const dbModule = require('./db.js');
 const { handleError } = require('./control.js');
 const eth = require('./eth.js');
 const payu = require('./payu.js');
@@ -9,6 +10,16 @@ const distributions = require('./distributions.js');
 const assessments = require('./assessments.js');
 
 const port = process.env.PORT || 3000;
+
+const initialize = async () => {
+  await dbModule.connect();
+  payu.initialize();
+  users.initialize();
+  events.initialize();
+  distributions.initialize();
+  assessments.initialize();
+}
+initialize();
 
 const app = express();
 app.use(express.json());

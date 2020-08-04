@@ -1,7 +1,12 @@
 const eth = require('../src/eth.js');
-const db = require('../src/db.js');
+const dbModule = require('../src/db.js');
 
-eth.initializeNonce();
+let db;
+const initialize = async () => {
+  await dbModule.connect();
+  db = dbModule.getCollections();
+  eth.initializeNonce();
+}
 
 const findEvent = async eventURL => {
   const event = await db.events.findOne({ url: eventURL });
@@ -15,10 +20,11 @@ const registerFor = async (eventURL, userAddress) => {
 }
 
 const main = async () => {
+  await initialize();
   const eventURL = process.argv[2];
   const userAddress = process.argv[3];
   await registerFor(eventURL, userAddress);
-  db.disconnect();
+  dbModule.disconnect();
 }
 
 main();

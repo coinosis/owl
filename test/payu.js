@@ -1,7 +1,7 @@
 const payu = require('../src/payu.js');
 const express = require('express');
 const chai = require('chai');
-const db = require('../src/db.js');
+const dbModule = require('../src/db.js');
 
 const startServer = handler => {
   const app = express();
@@ -11,8 +11,10 @@ const startServer = handler => {
   return server;
 }
 
-describe('payu.js', () => {
+describe('payu.js', async () => {
 
+  await dbModule.connect();
+  payu.initialize();
   const event = 'bitcoin-pizza-day-2020';
   const user = '0x748c886A5aE916A08A493a29a5ff93880Ee000eD';
   const payment = {
@@ -155,7 +157,7 @@ describe('payu.js', () => {
   });
 
   after(async () => {
-    db.disconnect();
+    dbModule.disconnect();
   });
 
 });

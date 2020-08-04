@@ -1,6 +1,11 @@
 const { HttpError, errors } = require('./control.js');
-const db = require('./db.js');
+const dbModule = require('./db.js');
 const { getETHPrice } = require('./eth.js');
+
+let db;
+const initialize = () => {
+  db = dbModule.getCollections();
+}
 
 const getDistribution = async event => {
   const distribution = await db.distributions.findOne({ event });
@@ -19,4 +24,4 @@ const putDistribution = async event => {
   db.distributions.insertOne({ event, ethPrice });
 }
 
-module.exports = { getDistribution, putDistribution }
+module.exports = { initialize, getDistribution, putDistribution }

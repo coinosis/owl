@@ -1,28 +1,31 @@
 const MongoClient = require('mongodb').MongoClient;
-const url = process.env.DB || 'mongodb://localhost:27017/coinosis';
+const uri = process.env.DB || 'mongodb://localhost:27017/coinosis';
 
-const client = new MongoClient(url, { useUnifiedTopology: true });
-client.connect();
-const db = client.db();
-const users = db.collection('users');
-const events = db.collection('events');
-const assessments = db.collection('assessments');
-const payments = db.collection('payments');
-const transactions = db.collection('transactions');
-const closable = db.collection('closable');
-const distributions = db.collection('distributions');
+const Client = new MongoClient(uri , {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
+let db, client;
+const connect = async () => {
+  client = await Client.connect();
+  db = client.db();
+}
+
+const getCollections = () => {
+  return {
+    users: db.collection('users'),
+    events: db.collection('events'),
+    assessments: db.collection('assessments'),
+    payments: db.collection('payments'),
+    transactions: db.collection('transactions'),
+    closable: db.collection('closable'),
+    distributions: db.collection('distributions'),
+  }
+}
 
 const disconnect = () => {
   client.close();
 }
 
-module.exports = {
-  users,
-  events,
-  assessments,
-  payments,
-  transactions,
-  closable,
-  distributions,
-  disconnect,
-};
+module.exports = { connect, getCollections, disconnect };

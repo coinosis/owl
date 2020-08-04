@@ -96,7 +96,7 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
       status: statuses.NOT_SENT,
     };
     if (result.error.match('nonce')) {
-      fetchNonce();
+      initializeNonce();
       console.log(response);
     }
   } else {
@@ -118,8 +118,8 @@ const clapFor = async (contractAddress, clapper, attendees, claps) => {
     contract: '${contractAddress}',
     clapper: '${clapper}',
     attendees: '[${attendees}],
-    claps: [${claps}
-  ])`);
+    claps: [${claps}]
+  })`);
   const contract = new web3.eth.Contract(abi, contractAddress);
   const gasPrice = await getGasPrice();
   const tx = {

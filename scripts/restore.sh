@@ -6,8 +6,8 @@ if [ "$#" -ne 2 ]; then
   exit 1
 fi
 
-productionURI="$(heroku config:get MONGODB_URI -a coinosis)"
-testingURI="$(heroku config:get MONGODB_URI -a testing-owl)"
+productionURI="$(heroku config:get DB -a coinosis)"
+testingURI="$(heroku config:get DB -a testing-owl)"
 developmentURI=mongodb://localhost/coinosis
 
 productionDB=heroku_t2bt9b8m

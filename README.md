@@ -57,7 +57,7 @@ $ mongo coinosis
 2. install the mongolab add-on
 3. deploy the code
 2. install [heroku CLI](https://devcenter.heroku.com/articles/heroku-cli#download-and-install)
-4. `MONGODB_URI=$(heroku config:get MONGODB_URI -a <your-app-name>) scripts/initialize.sh`
+4. `DB=$(heroku config:get DB -a <your-app-name>) scripts/initialize.sh`
 
 ## backup the production database & restore to any database
 

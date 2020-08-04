@@ -1,5 +1,5 @@
 const MongoClient = require('mongodb').MongoClient;
-const url = process.env.MONGODB_URI || 'mongodb://localhost:27017/coinosis';
+const url = process.env.DB || 'mongodb://localhost:27017/coinosis';
 
 const client = new MongoClient(url, { useUnifiedTopology: true });
 client.connect();

@@ -14,7 +14,7 @@ elif [ $ENVIRONMENT = "production" ]; then
   APP="coinosis"
 fi
 if [ -n "$APP" ]; then
-  export MONGODB_URI=$(heroku config:get MONGODB_URI -a $APP)
+  export DB=$(heroku config:get DB -a $APP)
 fi
 
 export PRIVATE_KEY=$(cat .privateKey)

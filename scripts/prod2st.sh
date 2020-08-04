@@ -1,8 +1,8 @@
 #! /bin/bash
 
 currentDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-production="$(heroku config:get MONGODB_URI -a coinosis)"
-staging="$(heroku config:get MONGODB_URI -a staging-owl)"
+production="$(heroku config:get DB -a coinosis)"
+staging="$(heroku config:get DB -a staging-owl)"
 
 mongodump --uri=${production} -o ${currentDir}/../backup/prod/ &&
 mongodump --uri=${staging} -o ${currentDir}/../backup/st/ &&

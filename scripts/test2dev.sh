@@ -1,7 +1,7 @@
 #! /bin/bash
 
 currentDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-testing="$(heroku config:get MONGODB_URI -a testing-owl)"
+testing="$(heroku config:get DB -a testing-owl)"
 development=mongodb://localhost/coinosis
 
 mongodump --uri=${testing} -o ${currentDir}/../backup/test/ &&

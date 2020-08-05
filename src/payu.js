@@ -139,6 +139,7 @@ const processPayment = async ({ state, referenceCode, amount, currency }) => {
   const result = await registerFor(contractAddress, userAddress, feeWei);
   const feeETH = web3.utils.fromWei(feeWei);
   const transaction = {
+    date: new Date(),
     referenceCode,
     feeETH,
     ethPrice,

@@ -102,7 +102,7 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
   } else {
     result = {
       ...result,
-      tx: response.result,
+      txHash: response.result,
       status: statuses.SENT,
     }
   }

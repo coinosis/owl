@@ -196,6 +196,7 @@ const pullPayment = async referenceCode => {
   const transaction = payload.transactions[0];
   const extraParameters = transaction.extraParameters;
   const result = {
+    method: transaction.paymentMethod,
     status: transaction.transactionResponse.state,
     response: transaction.transactionResponse.responseCode,
     requestDate: new Date(payload.creationDate),

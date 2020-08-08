@@ -51,14 +51,9 @@ app.get('/eth/gas', async (req, res, next) => {
 
 app.post('/payu', async (req, res, next) => {
   try {
-    const {
-      state,
-      referenceCode,
-      amount,
-      currency,
-    } = await payu.paymentReceived(req);
+    const transaction = await payu.paymentReceived(req);
     res.status(200).end();
-    await payu.processPayment({ state, referenceCode, amount, currency });
+    await payu.processPayment(transaction);
   } catch (err) {
     handleError(err, next);
   }

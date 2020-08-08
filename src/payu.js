@@ -61,6 +61,7 @@ const getClosable = async referenceCode => {
 }
 
 const paymentReceived = async req => {
+  const receivedAt = new Date();
   const params = {
     sign: isStringLongerThan(60),
     reference_sale: isStringLongerThan(45),
@@ -68,14 +69,15 @@ const paymentReceived = async req => {
     currency: isCurrencyCode,
     state_pol: isPositiveNumber,
   };
-  await checkParams(params, req.body);
+  const { body } = req;
+  await checkParams(params, body);
   const {
     sign: actualHash,
     reference_sale: referenceCode,
     value: amount,
     currency,
     state_pol: state,
-  } = req.body;
+  } = body;
   const hashableAmount = getHashableAmount(amount);
   const expectedHash = await getHash({
     referenceCode,
@@ -84,20 +86,34 @@ const paymentReceived = async req => {
     state,
   });
   if (actualHash !== expectedHash) {
-    console.error({ actualHash, expectedHash });
-    throw new HttpError(401, errors.UNAUTHORIZED);
+    throw new HttpError(401, errors.UNAUTHORIZED, { actualHash, expectedHash });
   }
+  // delete from here
   delete req.headers['http.useragent'];
   db.payments.insertOne({
-    body: req.body,
+    body,
     metadata: {
       date: new Date(),
       ip: req.connection.remoteAddress,
-      reference: req.body.reference_sale,
+      reference: body.reference_sale,
     },
     headers: req.headers,
   });
-  return { state, referenceCode, amount, currency };
+  // to here
+  const { event, user } = processReferenceCode(referenceCode);
+  const push = {
+    receivedAt,
+    amount,
+    currency,
+    state,
+    message: body.response_message_pol,
+  };
+  db.transactions.updateOne(
+    { event, user },
+    { $push: { payu: { referenceCode, push } } },
+    { upsert: true },
+  );
+  return { event, user, referenceCode, push };
 };
 
 const awaitPullPayment = async referenceCode => {
@@ -240,6 +256,11 @@ const getHash = async ({ referenceCode, amount, currency, state }) => {
   const digest = hash.digest('hex');
   return digest;
 };
+
+const processReferenceCode = referenceCode => {
+  const [ event, user ] = referenceCode.split(':');
+  return { event, user };
+}
 
 module.exports = {
   initialize,

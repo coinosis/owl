@@ -51,6 +51,16 @@ const getHashableAmount = amount => {
   }
 }
 
+const createReferenceCode = (event, user, counter) => {
+  const referenceCode = `${event}:${user}:${counter}:${environmentId}`;
+  return referenceCode;
+}
+
+const processReferenceCode = referenceCode => {
+  const [ event, user, counter ] = referenceCode.split(':');
+  return { event, user, counter: Number(counter) };
+}
+
 const setClosable = referenceCode => {
   db.closable.insertOne({ referenceCode });
 }
@@ -61,7 +71,7 @@ const getClosable = async referenceCode => {
 }
 
 const paymentReceived = async req => {
-  const receivedAt = new Date();
+  const date = new Date();
   const params = {
     sign: isStringLongerThan(60),
     reference_sale: isStringLongerThan(45),
@@ -102,7 +112,8 @@ const paymentReceived = async req => {
   // to here
   const { event, user } = processReferenceCode(referenceCode);
   const push = {
-    receivedAt,
+    referenceCode,
+    date,
     amount,
     currency,
     state,
@@ -110,7 +121,7 @@ const paymentReceived = async req => {
   };
   db.transactions.updateOne(
     { event, user },
-    { $push: { payu: { referenceCode, push } } },
+    { $push: { push: push } },
     { upsert: true },
   );
   return { event, user, referenceCode, push };
@@ -166,6 +177,7 @@ const processPayment = async ({ state, referenceCode, amount, currency }) => {
   db.transactions.insertOne(transaction);
 }
 
+// delete this function
 const pushPayment = async referenceCode => {
   const payment = await db.payments.findOne({
     'body.reference_sale': referenceCode,
@@ -183,7 +195,7 @@ const pushPayment = async referenceCode => {
   return result;
 }
 
-const pullPayment = async referenceCode => {
+const fetchPayment = async referenceCode => {
   const object = {
     test: true,
     command: 'ORDER_DETAIL_BY_REFERENCE_CODE',
@@ -212,34 +224,55 @@ const pullPayment = async referenceCode => {
   const transaction = payload.transactions[0];
   const extraParameters = transaction.extraParameters;
   const result = {
-    method: transaction.paymentMethod,
-    status: transaction.transactionResponse.state,
-    response: transaction.transactionResponse.responseCode,
-    requestDate: new Date(payload.creationDate),
-    value: txValue.value,
+    referenceCode,
+    date: new Date(payload.creationDate),
+    amount: txValue.value,
     currency: txValue.currency,
+    state: transaction.transactionResponse.state,
+    message: transaction.transactionResponse.responseCode,
+    method: transaction.paymentMethod,
     receipt: extraParameters ? extraParameters.URL_PAYMENT_RECEIPT_HTML : '',
   };
   return result;
 };
 
-const getPayments = async (event, user) => {
-  let counter = 1;
-  let pull, push = null;
-  const paymentList = [];
+const findLatestPayments = async (event, user, initialCounter) => {
+  const latestPayments = [];
+  let counter = initialCounter;
+  let potentialPayment;
   do {
-    const referenceCode = `${event}:${user}:${counter}:${environmentId}`;
-    pull = await pullPayment(referenceCode);
-    push = await pushPayment(referenceCode);
-    const transaction = await db.transactions.findOne({ referenceCode });
-    if (pull === null && push === null) break;
-    const payment = { referenceCode, pull, push, transaction };
-    paymentList.push(payment);
+    const referenceCode = createReferenceCode(event, user, counter);
+    potentialPayment = await fetchPayment(referenceCode);
+    if (potentialPayment == null) break;
+    latestPayments.push(potentialPayment);
     counter ++;
   } while (true);
-  paymentList.reverse();
-  return paymentList;
+  return latestPayments;
 };
+
+const getTransaction = async (event, user) => {
+  let initialCounter;
+  const storedTransaction = await db.transactions.findOne({ event, user });
+  if (!storedTransaction || !storedTransaction.pull) {
+    initialCounter = 1;
+  } else {
+    const { pull } = storedTransaction;
+    const latestStoredPayment = pull[pull.length - 1];
+    const { counter } = processReferenceCode(latestStoredPayment.referenceCode);
+    initialCounter = counter + 1;
+  }
+  const latestPayments = await findLatestPayments(event, user, initialCounter);
+  if (!latestPayments.length) {
+    return storedTransaction;
+  }
+  await db.transactions.updateOne(
+    { event, user },
+    { $push: { pull: { $each: latestPayments } } },
+    { upsert: true },
+  );
+  const updatedTransaction = await db.transactions.findOne({ event, user });
+  return updatedTransaction;
+}
 
 const getHash = async ({ referenceCode, amount, currency, state }) => {
   const params = {
@@ -257,19 +290,15 @@ const getHash = async ({ referenceCode, amount, currency, state }) => {
   return digest;
 };
 
-const processReferenceCode = referenceCode => {
-  const [ event, user ] = referenceCode.split(':');
-  return { event, user };
-}
-
 module.exports = {
   initialize,
   paymentReceived,
   processPayment,
-  getPayments,
+  fetchPayment,
+  findLatestPayments,
+  getTransaction,
   getHash,
   pushPayment,
-  pullPayment,
   getHashableAmount,
   checkFee,
   sleep,

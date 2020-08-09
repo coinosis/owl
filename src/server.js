@@ -84,8 +84,8 @@ app.get(
   async (req, res, next) => {
     try {
       const { event, user } = req.params;
-      const paymentList = await payu.getPayments(event, user);
-      res.json(paymentList);
+      const transaction = await payu.getTransaction(event, user);
+      res.json(transaction);
     } catch (err) {
       handleError(err, next);
     }

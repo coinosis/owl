@@ -1,7 +1,6 @@
 const web3 = require('./web3.js');
 
-const statuses = {
-  ALREADY_REGISTERED: 'already-registered',
+const states = {
   SENT: 'sent',
   NOT_SENT: 'not-sent',
 };
@@ -32,6 +31,7 @@ const errors = {
   INVALID_PAYMENT: 'invalid-payment',
   PAYMENT_NOT_APPROVED: 'payment-not-approved',
   PAYMENT_ALREADY_PROCESSED: 'payment-already-processed',
+  ALREADY_REGISTERED: 'already-registered',
 };
 
 class HttpError extends Error {
@@ -142,7 +142,7 @@ module.exports = {
   HttpError,
   InternalError,
   handleError,
-  statuses,
+  states,
   errors,
   checkParams,
   checkOptionalParams,

@@ -4,7 +4,7 @@ const EthereumTx = require('ethereumjs-tx').Transaction;
 const { bufferToHex, toBuffer } = require('ethereumjs-util');
 const abi = require('../contracts/ProxyEvent.abi.json');
 const { etherscanKey, web3Provider, chain, account } = require('./settings.js');
-const { HttpError, errors, statuses } = require('./control.js');
+const { HttpError, errors, states } = require('./control.js');
 
 const privateKeyString = process.env.PRIVATE_KEY;
 if (privateKeyString === undefined) throw new Error('Private key not set');
@@ -48,7 +48,7 @@ const usdToWei = async usd => {
   const eth = usd / ethPrice;
   const truncatedETH = eth.toFixed(18);
   const wei = web3.utils.toWei(truncatedETH);
-  return wei;
+  return { wei, ethPrice };
 }
 
 const getGasPrice = async () => {
@@ -78,7 +78,10 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
   const contract = new web3.eth.Contract(abi, contractAddress);
   const attendees = await contract.methods.getAttendees().call();
   if (attendees.includes(attendee)) {
-    return { address: attendee, status: statuses.ALREADY_REGISTERED };
+    return {
+      state: states.NOT_SENT,
+      message: errors.ALREADY_REGISTERED
+    };
   }
   const gasPrice = await getGasPrice();
   const tx = {
@@ -88,12 +91,11 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
     gasPrice: gasPrice.propose,
   };
   const response = await sendRawTx(tx);
-  let result = { address: attendee };
+  let result;
   if (response.error) {
     result = {
-      ...result,
-      error: response.error.message,
-      status: statuses.NOT_SENT,
+      state: states.NOT_SENT,
+      message: response.error.message,
     };
     if (result.error.match('nonce')) {
       initializeNonce();
@@ -101,9 +103,9 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
     }
   } else {
     result = {
-      ...result,
+      state: states.SENT,
+      message: states.SENT,
       txHash: response.result,
-      status: statuses.SENT,
     }
   }
 

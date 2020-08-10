@@ -14,13 +14,14 @@ const {
   HttpError,
   InternalError,
   errors,
+  states,
   checkParams,
   isPositiveNumber,
   isStringLongerThan,
   isCurrencyCode,
 } = require('./control.js');
 const web3 = require('./web3.js');
-const { getETHPrice, registerFor, usdToWei } = require('./eth.js');
+const { registerFor, usdToWei } = require('./eth.js');
 
 let db;
 const initialize = () => {
@@ -30,8 +31,12 @@ const initialize = () => {
 const payULogin = process.env.PAYU_LOGIN || 'pRRXKOl8ikMmt9u';
 const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
 
-const APPROVED = 4;
+const APPROVED_ID = 4;
+const APPROVED = 'APPROVED';
+const DECLINED = 'DECLINED';
 const USD = 'USD';
+const ETH = 'ETH';
+const REGISTER = 'register';
 
 const sleep = util.promisify(setTimeout);
 
@@ -59,6 +64,18 @@ const createReferenceCode = (event, user, counter) => {
 const processReferenceCode = referenceCode => {
   const [ event, user, counter ] = referenceCode.split(':');
   return { event, user, counter: Number(counter) };
+}
+
+const setTxError = (errorInfo, element, message) => {
+  const { event, user, counter } = errorInfo;
+  const key = `${element}.${counter}`;
+  const messageKey = `${key}.message`;
+  const stateKey = `${key}.state`;
+  db.transactions.updateOne(
+    { event, user },
+    { $set: { [messageKey]: message, [stateKey]: states.NOT_SENT } },
+    { upsert: true },
+  );
 }
 
 const setClosable = referenceCode => {
@@ -111,70 +128,84 @@ const paymentReceived = async req => {
   });
   // to here
   const { event, user } = processReferenceCode(referenceCode);
-  const push = {
+  const pushPayment = {
     referenceCode,
     date,
     amount,
     currency,
-    state,
-    message: body.response_message_pol,
+    state: state == APPROVED_ID ? APPROVED: DECLINED,
   };
   db.transactions.updateOne(
     { event, user },
-    { $push: { push: push } },
+    { $push: { push: pushPayment } },
     { upsert: true },
   );
-  return { event, user, referenceCode, push };
+  return { event, user, pushPayment };
 };
 
-const awaitPullPayment = async referenceCode => {
-  let attempts = 1;
-  let pull = await pullPayment(referenceCode);
-  while(pull === null && attempts < pullAttempts) {
-    attempts++;
-    await sleep(pullInterval);
-    console.log(`attempt # ${attempts}`);
-    pull = await pullPayment(referenceCode);
-    console.log(pull);
+const processPayment = async ({
+  event: eventURL,
+  user: userAddress,
+  pushPayment,
+}) => {
+  const { referenceCode, amount, currency, state } = pushPayment;
+  const { counter } = processReferenceCode(referenceCode);
+  const errorInfo = { event: eventURL, user: userAddress, counter };
+  if (state !== APPROVED) {
+    setTxError(errorInfo, REGISTER, errors.PAYMENT_NOT_APPROVED);
+    throw new InternalError(errors.PAYMENT_NOT_APPROVED, state);
   }
-  return pull;
-}
-
-const processPayment = async ({ state, referenceCode, amount, currency }) => {
-  if (state != APPROVED) throw new InternalError(errors.PAYMENT_NOT_APPROVED);
-  if (currency !== USD) throw new InternalError(errors.INVALID_CURRENCY);
-  const txCount = await db.transactions.countDocuments({ referenceCode });
-  if (txCount > 0) throw new InternalError(errors.PAYMENT_ALREADY_PROCESSED);
-  const [ eventURL, userAddress ] = referenceCode.split(':');
+  if (currency !== USD) {
+    setTxError(errorInfo, REGISTER, errors.INVALID_CURRENCY);
+    throw new InternalError(errors.INVALID_CURRENCY, currency);
+  }
+  const transaction = await db.transactions.findOne({
+    event: eventURL,
+    user: userAddress,
+    'register.referenceCode': referenceCode,
+  });
+  if (transaction) {
+    setTxError(errorInfo, REGISTER, errors.PAYMENT_ALREADY_PROCESSED);
+    throw new InternalError(errors.PAYMENT_ALREADY_PROCESSED, transaction);
+  }
   const event = await db.events.findOne({ url: eventURL });
-  if (event === null) throw new InternalError(errors.EVENT_NONEXISTENT);
+  if (event === null) {
+    setTxError(errorInfo, REGISTER, errors.EVENT_NONEXISTENT);
+    throw new InternalError(errors.EVENT_NONEXISTENT, eventURL);
+  }
   const { feeWei, address: contractAddress } = event;
-  const ethPrice = await getETHPrice();
-  const amountWei = await usdToWei(amount);
+  const { wei: amountWei, ethPrice } = await usdToWei(amount);
   const correctPushFee = checkFee({ expected: feeWei, actual: amountWei });
   if (!correctPushFee) {
+    setTxError(errorInfo, REGISTER, errors.INVALID_FEE);
     throw new InternalError(errors.INVALID_FEE, { feeWei, amountWei });
   }
-  const pullPayment = await awaitPullPayment(referenceCode);
+  const pullPayment = await paymentFetcher(referenceCode);
   if (pullPayment === null) {
-    throw new InternalError(errors.PAYMENT_NONEXISTENT);
+    setTxError(errorInfo, REGISTER, errors.PAYMENT_NONEXISTENT);
+    throw new InternalError(errors.PAYMENT_NONEXISTENT, referenceCode);
   }
-  const { status, currency: pullCurrency, value: pullAmount } = pullPayment;
-  if (status !== 'APPROVED' || pullCurrency !== USD || pullAmount != amount) {
-    throw new InternalError(errors.INVALID_PAYMENT);
+  if (pullPayment.state !== APPROVED
+      || pullPayment.currency !== USD
+      || pullPayment.amount != amount
+     ) {
+    setTxError(errorInfo, REGISTER, errors.INVALID_PAYMENT);
+    throw new InternalError(errors.INVALID_PAYMENT, pullPayment, pushPayment);
   }
   const result = await registerFor(contractAddress, userAddress, feeWei);
-  const feeETH = web3.utils.fromWei(feeWei);
-  const transaction = {
-    date: new Date(),
-    referenceCode,
-    feeETH,
-    ethPrice,
-    amountPaid: amount,
-    currency,
+  const register = {
     ...result,
+    referenceCode,
+    date: new Date(),
+    amount: web3.utils.fromWei(amountWei),
+    currency: ETH,
+    ethPrice,
   };
-  db.transactions.insertOne(transaction);
+  db.transactions.updateOne(
+    { event: eventURL, user: userAddress },
+    { $push: { register: register } },
+    { upsert: true },
+  );
 }
 
 // delete this function
@@ -193,6 +224,19 @@ const pushPayment = async referenceCode => {
     error: body.error_message_bank,
   };
   return result;
+}
+
+const paymentFetcher = async referenceCode => {
+  let attempts = 1;
+  let payment = await fetchPayment(referenceCode);
+  while(payment === null && attempts < pullAttempts) {
+    attempts++;
+    await sleep(pullInterval);
+    console.log(`attempt # ${attempts}`);
+    payment = await fetchPayment(referenceCode);
+    console.log(payment);
+  }
+  return payment;
 }
 
 const fetchPayment = async referenceCode => {
@@ -226,7 +270,7 @@ const fetchPayment = async referenceCode => {
   const result = {
     referenceCode,
     date: new Date(payload.creationDate),
-    amount: txValue.value,
+    amount: String(txValue.value),
     currency: txValue.currency,
     state: transaction.transactionResponse.state,
     message: transaction.transactionResponse.responseCode,
@@ -254,7 +298,7 @@ const getTransaction = async (event, user) => {
   let initialCounter;
   const storedTransaction = await db.transactions.findOne({ event, user });
   if (!storedTransaction || !storedTransaction.pull) {
-    initialCounter = 1;
+    initialCounter = 0;
   } else {
     const { pull } = storedTransaction;
     const latestStoredPayment = pull[pull.length - 1];
@@ -302,7 +346,7 @@ module.exports = {
   getHashableAmount,
   checkFee,
   sleep,
-  awaitPullPayment,
+  paymentFetcher,
   setClosable,
   getClosable,
 }

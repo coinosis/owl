@@ -67,13 +67,10 @@ const processReferenceCode = referenceCode => {
 }
 
 const setTxError = (errorInfo, element, message) => {
-  const { event, user, counter } = errorInfo;
-  const key = `${element}.${counter}`;
-  const messageKey = `${key}.message`;
-  const stateKey = `${key}.state`;
+  const { event, user } = errorInfo;
   db.transactions.updateOne(
     { event, user },
-    { $set: { [messageKey]: message, [stateKey]: states.NOT_SENT } },
+    { $push: { [element]: { message, state: states.NOT_SENT } } },
     { upsert: true },
   );
 }
@@ -149,8 +146,7 @@ const processPayment = async ({
   pushPayment,
 }) => {
   const { referenceCode, amount, currency, state } = pushPayment;
-  const { counter } = processReferenceCode(referenceCode);
-  const errorInfo = { event: eventURL, user: userAddress, counter };
+  const errorInfo = { event: eventURL, user: userAddress };
   if (state !== APPROVED) {
     setTxError(errorInfo, REGISTER, errors.PAYMENT_NOT_APPROVED);
     throw new InternalError(errors.PAYMENT_NOT_APPROVED, state);
@@ -187,7 +183,7 @@ const processPayment = async ({
   }
   if (pullPayment.state !== APPROVED
       || pullPayment.currency !== USD
-      || pullPayment.amount != amount
+      || Number(pullPayment.amount) != Number(amount)
      ) {
     setTxError(errorInfo, REGISTER, errors.INVALID_PAYMENT);
     throw new InternalError(errors.INVALID_PAYMENT, pullPayment, pushPayment);

@@ -21,7 +21,7 @@ const {
   isCurrencyCode,
 } = require('./control.js');
 const web3 = require('./web3.js');
-const { registerFor, usdToWei } = require('./eth.js');
+const { registerFor } = require('./eth.js');
 
 let db;
 const initialize = () => {
@@ -35,7 +35,7 @@ const APPROVED_ID = 4;
 const APPROVED = 'APPROVED';
 const DECLINED = 'DECLINED';
 const USD = 'USD';
-const ETH = 'ETH';
+const ETH = 'xDAI';
 const REGISTER = 'register';
 
 const sleep = util.promisify(setTimeout);
@@ -170,7 +170,7 @@ const processPayment = async ({
     throw new InternalError(errors.EVENT_NONEXISTENT, eventURL);
   }
   const { feeWei, address: contractAddress } = event;
-  const { wei: amountWei, ethPrice } = await usdToWei(amount);
+  const amountWei = web3.utils.toWei(amount);
   const correctPushFee = checkFee({ expected: feeWei, actual: amountWei });
   if (!correctPushFee) {
     setTxError(errorInfo, REGISTER, errors.INVALID_FEE);
@@ -195,7 +195,6 @@ const processPayment = async ({
     date: new Date(),
     amount: web3.utils.fromWei(amountWei),
     currency: ETH,
-    ethPrice,
   };
   db.transactions.updateOne(
     { event: eventURL, user: userAddress },

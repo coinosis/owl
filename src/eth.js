@@ -91,12 +91,11 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
       message: errors.ALREADY_REGISTERED
     };
   }
-  const gasPrice = await getGasPrice();
   const tx = {
     to: contractAddress,
     value: feeWei,
     data: contract.methods.registerFor(attendee).encodeABI(),
-    gasPrice: gasPrice.propose,
+    gasPrice: '50000000000',
   };
   const response = await sendRawTx(tx);
   let result;
@@ -131,12 +130,11 @@ const clapFor = async (contractAddress, clapper, attendees, claps) => {
     claps: [${claps}]
   })`);
   const contract = new web3.eth.Contract(abi, contractAddress);
-  const gasPrice = await getGasPrice();
   const tx = {
     to: contractAddress,
     value: 0,
     data: contract.methods.clapFor(clapper, attendees, claps).encodeABI(),
-    gasPrice: gasPrice.propose,
+    gasPrice: '50000000000',
   };
   const result = await sendRawTx(tx);
   console.log(result);

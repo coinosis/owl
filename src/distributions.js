@@ -1,6 +1,5 @@
 const { HttpError, errors } = require('./control.js');
 const dbModule = require('./db.js');
-const { getETHPrice } = require('./eth.js');
 
 let db;
 const initialize = () => {
@@ -20,7 +19,7 @@ const putDistribution = async event => {
   const distributionCount = await db.distributions.countDocuments({ event });
   if (distributionCount != 0)
     throw new HttpError(400, errors.DISTRIBUTION_EXISTS);
-  const ethPrice = await getETHPrice();
+  const ethPrice = '1';
   db.distributions.insertOne({ event, ethPrice });
 }
 

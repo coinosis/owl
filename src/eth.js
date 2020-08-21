@@ -1,9 +1,15 @@
 const web3 = require('./web3.js');
 const fetch = require('node-fetch');
 const EthereumTx = require('ethereumjs-tx').Transaction;
+const Common = require('ethereumjs-common').default;
 const { bufferToHex, toBuffer } = require('ethereumjs-util');
 const abi = require('../contracts/ProxyEvent.abi.json');
-const { etherscanKey, web3Provider, chain, account } = require('./settings.js');
+const {
+  etherscanKey,
+  web3Provider,
+  chainId,
+  account,
+} = require('./settings.js');
 const { HttpError, errors, states } = require('./control.js');
 
 const privateKeyString = process.env.PRIVATE_KEY;
@@ -14,6 +20,8 @@ const ETHPrice = `${etherscanAPI}?module=stats&action=ethprice`
       + `&apiKey=${etherscanKey}`;
 const gasTracker = `${etherscanAPI}?module=gastracker&action=gasoracle`
       + `&apiKey=${etherscanKey}`;
+
+const customChain = Common.forCustomChain('mainnet', { chainId, }, 'istanbul');
 
 let nonce;
 const initializeNonce = async () => {
@@ -151,7 +159,7 @@ const sendRawTx = async ({ to, value, data, gasPrice }) => {
 
   const tx = new EthereumTx(
     txParams,
-    { chain, hardfork: 'istanbul' }
+    { common: customChain, },
   );
 
   tx.sign(privateKey);

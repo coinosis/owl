@@ -45,6 +45,7 @@ const postEvent = async req => {
     'url',
     'description',
     'feeWei',
+    'currency',
     'start',
     'end',
     'beforeStart',
@@ -61,6 +62,7 @@ const postEvent = async req => {
     url,
     description,
     feeWei,
+    currency,
     start,
     end,
     beforeStart,
@@ -74,6 +76,7 @@ const postEvent = async req => {
       || !/^[a-z1-9-]{1}[a-z0-9-]{0,59}$/.test(url)
       || description === ''
       || isNaN(Number(feeWei))
+      || currency === ''
       || isNaN(new Date(start).getTime())
       || isNaN(new Date(end).getTime())
       || isNaN(new Date(beforeStart).getTime())
@@ -89,6 +92,7 @@ const postEvent = async req => {
     url,
     description,
     feeWei,
+    currency,
     start,
     end,
     beforeStart,
@@ -104,7 +108,7 @@ const postEvent = async req => {
     throw new HttpError(401, errors.MALFORMED_SIGNATURE);
   }
   if (signer !== organizer) {
-    throw new HttpError(403, errors.UNAUTHORIZED);
+    throw new HttpError(403, errors.UNAUTHORIZED, { signer, organizer });
   }
   const addressCount = await db.events.countDocuments({address});
   if (addressCount !== 0) {
@@ -122,6 +126,7 @@ const postEvent = async req => {
   if (feeAmount < 0 || feeAmount === Infinity) {
     throw new HttpError(400, errors.INVALID_FEE);
   }
+  if (currency !== 'xDAI') throw new HttpError(400, errors.INVALID_CURRENCY);
   const creationDate = new Date();
   const startDate = new Date(start);
   const endDate = new Date(end);
@@ -146,6 +151,7 @@ const postEvent = async req => {
     url,
     description,
     feeWei,
+    currency,
     start: startDate,
     end: endDate,
     beforeStart: beforeStartDate,

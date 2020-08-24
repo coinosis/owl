@@ -113,18 +113,6 @@ const paymentReceived = async req => {
   if (actualHash !== expectedHash) {
     throw new HttpError(401, errors.UNAUTHORIZED, { actualHash, expectedHash });
   }
-  // delete from here
-  delete req.headers['http.useragent'];
-  db.payments.insertOne({
-    body,
-    metadata: {
-      date: new Date(),
-      ip: req.connection.remoteAddress,
-      reference: body.reference_sale,
-    },
-    headers: req.headers,
-  });
-  // to here
   const { event, user } = processReferenceCode(referenceCode);
   const pushPayment = {
     referenceCode,
@@ -202,24 +190,6 @@ const processPayment = async ({
     { $push: { register: register } },
     { upsert: true },
   );
-}
-
-// delete this function
-const pushPayment = async referenceCode => {
-  const payment = await db.payments.findOne({
-    'body.reference_sale': referenceCode,
-  });
-  if (!payment) return null;
-  const { body } = payment;
-  const result = {
-    requestDate: new Date(body.transaction_date),
-    responseDate: new Date(payment.metadata.date),
-    value: body.value,
-    currency: body.currency,
-    status: body.response_message_pol,
-    error: body.error_message_bank,
-  };
-  return result;
 }
 
 const paymentFetcher = async referenceCode => {
@@ -351,7 +321,6 @@ module.exports = {
   findLatestPayments,
   getTransaction,
   getHash,
-  pushPayment,
   getHashableAmount,
   checkFee,
   sleep,

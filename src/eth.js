@@ -104,7 +104,7 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
       state: states.NOT_SENT,
       message: response.error.message,
     };
-    if (response.error.match('nonce')) {
+    if (response.error.message.match('nonce')) {
       initializeNonce();
       console.log(response);
     }

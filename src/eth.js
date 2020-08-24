@@ -95,7 +95,7 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
     to: contractAddress,
     value: feeWei,
     data: contract.methods.registerFor(attendee).encodeABI(),
-    gasPrice: '50000000000',
+    gasPrice: '1000000000',
   };
   const response = await sendRawTx(tx);
   let result;

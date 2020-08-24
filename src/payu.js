@@ -34,6 +34,7 @@ const payUKey = process.env.PAYU_KEY || '4Vj8eK4rloUd272L48hsrarnUA';
 const APPROVED_ID = 4;
 const APPROVED = 'APPROVED';
 const DECLINED = 'DECLINED';
+const PENDING = 'PENDING';
 const USD = 'USD';
 const ETH = 'xDAI';
 const REGISTER = 'register';
@@ -291,6 +292,7 @@ const findLatestPayments = async (event, user, initialCounter) => {
 
 const getTransaction = async (event, user) => {
   let initialCounter;
+  let isPending = false;
   const storedTransaction = await db.transactions.findOne({ event, user });
   if (!storedTransaction || !storedTransaction.pull) {
     initialCounter = 0;
@@ -298,9 +300,21 @@ const getTransaction = async (event, user) => {
     const { pull } = storedTransaction;
     const latestStoredPayment = pull[pull.length - 1];
     const { counter } = processReferenceCode(latestStoredPayment.referenceCode);
-    initialCounter = counter + 1;
+    if (latestStoredPayment.state === PENDING) {
+      initialCounter = counter;
+      isPending = true;
+    } else {
+      initialCounter = counter + 1;
+    }
   }
-  const latestPayments = await findLatestPayments(event, user, initialCounter);
+  let latestPayments = await findLatestPayments(event, user, initialCounter);
+  if (isPending) {
+    const [ pendingPayment ] = latestPayments.splice(0, 1);
+    await db.transactions.updateOne(
+      { event, user },
+      { $set: { ['pull.' + initialCounter]: pendingPayment } },
+    );
+  }
   if (!latestPayments.length) {
     return storedTransaction;
   }

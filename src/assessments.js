@@ -48,6 +48,16 @@ const clap = async body => {
   );
 }
 
+const getClaps = async (event, user) => {
+  const result = await db.claps.findOne(
+    { event, user },
+    { projection: { _id: 0, claps: 1 } },
+  );
+  if (result === null) return 0;
+  const { claps } = result;
+  return claps;
+}
+
 const postAssessment = async req => {
   const params = {
     event: isString,
@@ -83,5 +93,6 @@ module.exports = {
   getAssessments,
   getAssessment,
   clap,
+  getClaps,
   postAssessment,
 };

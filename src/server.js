@@ -197,6 +197,19 @@ app.put('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
   }
 });
 
+app.get(
+  '/claps/:event([a-z0-9-]{1,60})/:user(0x[a-fA-F0-9]{40})',
+  async (req, res, next) => {
+    try {
+      const { event, user, } = req.params;
+      const claps = await assessments.getClaps(event, user);
+      res.json(claps);
+    } catch (err) {
+      handleError(err, next);
+    }
+  }
+);
+
 app.put('/clap', (req, res) => {
   try {
     res.status(200).end();

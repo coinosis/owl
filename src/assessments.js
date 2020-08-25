@@ -39,8 +39,16 @@ const getAssessment = async (event, sender) => {
   return assessment;
 }
 
-const postAssessment = async req => {
+const clap = async body => {
+  const { event, user, delta } = body;
+  db.claps.updateOne(
+    { event, user, },
+    { $inc: { claps: delta, }, },
+    { upsert: true, },
+  );
+}
 
+const postAssessment = async req => {
   const params = {
     event: isString,
     sender: isAddress,
@@ -70,4 +78,10 @@ const postAssessment = async req => {
   return result;
 }
 
-module.exports = { initialize, getAssessments, getAssessment, postAssessment };
+module.exports = {
+  initialize,
+  getAssessments,
+  getAssessment,
+  clap,
+  postAssessment,
+};

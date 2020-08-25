@@ -197,6 +197,15 @@ app.put('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
   }
 });
 
+app.put('/clap', (req, res) => {
+  try {
+    res.status(200).end();
+    assessments.clap(req.body);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 app.get('/assessments/:event([a-z0-9-]{1,60})', async (req, res, next) => {
   try {
     const { event } = req.params;

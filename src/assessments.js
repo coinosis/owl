@@ -10,6 +10,7 @@ const {
 } = require('./control.js');
 const dbModule = require('./db.js');
 const { clapFor } = require('./eth.js');
+const web3 = require('./web3.js');
 
 let db;
 const initialize = () => {
@@ -39,18 +40,23 @@ const getAssessment = async (event, sender) => {
   return assessment;
 }
 
-const clap = async body => {
-  const { event, user, delta } = body;
-  db.claps.updateOne(
-    { event, user, },
-    { $inc: { claps: delta, }, },
-    { upsert: true, },
-  );
+const clap = body => {
+  const { event, clapper, clapee, delta, signature } = body;
+  const payload = JSON.stringify({ event, user: clapper, });
+  const hex = web3.utils.utf8ToHex(payload);
+  const signer = web3.eth.accounts.recover(hex, signature);
+  if (signer === clapper) {
+    db.claps.updateOne(
+      { event, clapee, },
+      { $inc: { claps: delta, }, },
+      { upsert: true, },
+    );
+  }
 }
 
-const getClaps = async (event, user) => {
+const getClaps = async (event, clapee) => {
   const result = await db.claps.findOne(
-    { event, user },
+    { event, clapee },
     { projection: { _id: 0, claps: 1 } },
   );
   if (result === null) return 0;

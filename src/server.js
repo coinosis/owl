@@ -11,6 +11,7 @@ const assessments = require('./assessments.js');
 
 const port = process.env.PORT || 3000;
 
+let db;
 const initialize = async () => {
   await dbModule.connect();
   payu.initialize();
@@ -18,6 +19,8 @@ const initialize = async () => {
   events.initialize();
   distributions.initialize();
   assessments.initialize();
+  eth.initialize();
+  db = dbModule.getCollections();
 }
 initialize();
 
@@ -25,7 +28,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-eth.initializeNonce();
 
 app.get('/', (req, res) => {
   res.json('KQfvp');
@@ -80,11 +82,13 @@ app.get('/closable/:referenceCode', async (req, res, next) => {
 });
 
 app.get(
-  '/payu/:event([a-z0-9-]{1,60})/:user(0x[a-fA-F0-9]{40})',
+  '/tx/:event([a-z0-9-]{1,60})/:user(0x[a-fA-F0-9]{40})',
   async (req, res, next) => {
     try {
       const { event, user } = req.params;
-      const transaction = await payu.getTransaction(event, user);
+      await payu.updateTransaction(event, user);
+      await eth.updateTransaction(event, user);
+      const transaction = await db.transactions.findOne({ event, user, });
       res.json(transaction);
     } catch (err) {
       handleError(err, next);

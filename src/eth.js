@@ -1,3 +1,4 @@
+const dbModule = require('./db.js');
 const web3 = require('./web3.js');
 const fetch = require('node-fetch');
 const EthereumTx = require('ethereumjs-tx').Transaction;
@@ -23,8 +24,9 @@ const gasTracker = `${etherscanAPI}?module=gastracker&action=gasoracle`
 
 const customChain = Common.forCustomChain('mainnet', { chainId, }, 'istanbul');
 
-let nonce;
-const initializeNonce = async () => {
+let db, nonce;
+const initialize = async () => {
+  db = dbModule.getCollections();
   nonce = Number(await web3.eth.getTransactionCount(account));
   console.log(`obtained nonce ${nonce}`);
 }
@@ -105,13 +107,12 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
       message: response.error.message,
     };
     if (response.error.message.match('nonce')) {
-      initializeNonce();
+      initialize();
       console.log(response);
     }
   } else {
     result = {
       state: states.SENT,
-      message: states.SENT,
       txHash: response.result,
     }
   }
@@ -183,12 +184,30 @@ const sendRawTx = async ({ to, value, data, gasPrice }) => {
   return result;
 }
 
+const updateTransaction = async (event, user) => {
+  const transaction = await db.transactions.findOne({ event, user });
+  if (!transaction || !transaction.register) return;
+  const { register } = transaction;
+  for (let i = 0; i < register.length; i++) {
+    if (register[i].state === states.SENT) {
+      const latestTx = await web3.eth.getTransaction(register[i].txHash);
+      if (latestTx.blockHash) {
+        db.transactions.updateOne(
+          { event, user },
+          { $set: { [`register.${i}.state`]: states.CONFIRMED } },
+        );
+      }
+    }
+  }
+}
+
 module.exports = {
-  initializeNonce,
+  initialize,
   getETHPrice,
   getGasPrice,
   registerFor,
   clapFor,
   sendRawTx,
   usdToWei,
+  updateTransaction,
 };

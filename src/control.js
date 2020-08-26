@@ -1,8 +1,9 @@
 const web3 = require('./web3.js');
 
 const states = {
-  SENT: 'APPROVED',
   NOT_SENT: 'REJECTED',
+  SENT: 'PENDING',
+  CONFIRMED: 'APPROVED',
 };
 
 const errors = {

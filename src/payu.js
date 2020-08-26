@@ -260,7 +260,7 @@ const findLatestPayments = async (event, user, initialCounter) => {
   return latestPayments;
 };
 
-const getTransaction = async (event, user) => {
+const updateTransaction = async (event, user) => {
   let initialCounter;
   let isPending = false;
   const storedTransaction = await db.transactions.findOne({ event, user });
@@ -293,8 +293,6 @@ const getTransaction = async (event, user) => {
     { $push: { pull: { $each: latestPayments } } },
     { upsert: true },
   );
-  const updatedTransaction = await db.transactions.findOne({ event, user });
-  return updatedTransaction;
 }
 
 const getHash = async ({ referenceCode, amount, currency, state }) => {
@@ -319,7 +317,7 @@ module.exports = {
   processPayment,
   fetchPayment,
   findLatestPayments,
-  getTransaction,
+  updateTransaction,
   getHash,
   getHashableAmount,
   checkFee,

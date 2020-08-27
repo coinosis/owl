@@ -195,9 +195,12 @@ const processPayment = async ({
 const paymentFetcher = async referenceCode => {
   let attempts = 1;
   let payment = await fetchPayment(referenceCode);
-  while(payment === null && attempts < pullAttempts) {
-    attempts++;
+  while(
+    (payment === null || payment.state === PENDING)
+      && attempts < pullAttempts
+  ) {
     await sleep(pullInterval);
+    attempts ++;
     console.log(`attempt # ${attempts}`);
     payment = await fetchPayment(referenceCode);
     console.log(payment);

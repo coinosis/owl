@@ -35,6 +35,7 @@ const APPROVED_ID = 4;
 const APPROVED = 'APPROVED';
 const DECLINED = 'DECLINED';
 const PENDING = 'PENDING';
+const SUBMITTED = 'SUBMITTED';
 const USD = 'USD';
 const ETH = 'xDAI';
 const REGISTER = 'register';
@@ -196,7 +197,11 @@ const paymentFetcher = async referenceCode => {
   let attempts = 1;
   let payment = await fetchPayment(referenceCode);
   while(
-    (payment === null || payment.state === PENDING)
+    (
+      payment === null
+        || payment.state === PENDING
+        || payment.state === SUBMITTED
+    )
       && attempts < pullAttempts
   ) {
     await sleep(pullInterval);

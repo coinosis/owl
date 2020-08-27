@@ -5,7 +5,7 @@
     "etherscanKey": "2RU78DJDPVG9G2VK3AHE8QVTAN65CP9MBI",
     "web3Provider": "http://localhost:8545",
     "chainId": 1337,
-    "account": "0x9fCA45d4fF08e62B3084a68353BE55bD905c961A",
+    "account": "0x6348A4DF769A2dC50E8D2F968d445685B8043BFb",
     "merchantId": 508029,
     "feeThreshold": 0.9,
     "pullAttempts": 3600,

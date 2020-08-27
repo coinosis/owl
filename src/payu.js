@@ -288,9 +288,7 @@ const updateTransaction = async (event, user) => {
       { $set: { ['pull.' + initialCounter]: pendingPayment } },
     );
   }
-  if (!latestPayments.length) {
-    return storedTransaction;
-  }
+  if (!latestPayments.length) return;
   await db.transactions.updateOne(
     { event, user },
     { $push: { pull: { $each: latestPayments } } },

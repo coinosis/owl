@@ -99,17 +99,19 @@ const registerFor = async (contractAddress, attendee, feeWei) => {
     data: contract.methods.registerFor(attendee).encodeABI(),
     gasPrice: '1000000000',
   };
-  const response = await sendRawTx(tx);
+  let response = await sendRawTx(tx);
   let result;
+  if (response.error && response.error.message.match('nonce')) {
+    console.log(response.error.message);
+    console.log('updating nonce...');
+    await initialize();
+    response = await sendRawTx(tx);
+  }
   if (response.error) {
     result = {
       state: states.NOT_SENT,
       message: response.error.message,
     };
-    if (response.error.message.match('nonce')) {
-      initialize();
-      console.log(response);
-    }
   } else {
     result = {
       state: states.SENT,

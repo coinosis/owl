@@ -26,6 +26,7 @@ initialize();
 
 const app = express();
 app.use(express.json());
+app.use(express.text());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
@@ -214,10 +215,11 @@ app.get(
   }
 );
 
-app.put('/clap', (req, res) => {
+app.post('/clap', (req, res) => {
   try {
     res.status(200).end();
-    assessments.clap(req.body);
+    const body = JSON.parse(req.body);
+    assessments.clap(body);
   } catch (err) {
     console.error({
       endpoint: 'clap',

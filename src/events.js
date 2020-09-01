@@ -140,10 +140,6 @@ const postEvent = async req => {
   ) {
     throw new HttpError(400, errors.INVALID_DATE);
   }
-  const userCount = await db.users.countDocuments({address: organizer});
-  if (userCount === 0) {
-    throw new HttpError(400, errors.USER_NONEXISTENT);
-  }
   const version = 2;
   const event = {
     address,

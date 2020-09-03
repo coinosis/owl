@@ -107,7 +107,7 @@ const postEvent = async req => {
   } catch (err) {
     throw new HttpError(401, errors.MALFORMED_SIGNATURE);
   }
-  if (signer !== organizer) {
+  if (signer.toLowerCase() !== organizer.toLowerCase()) {
     throw new HttpError(403, errors.UNAUTHORIZED, { signer, organizer });
   }
   const addressCount = await db.events.countDocuments({address});

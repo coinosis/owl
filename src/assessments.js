@@ -79,10 +79,6 @@ const postAssessment = async req => {
   if (!event) {
     throw new HttpError(400, errors.EVENT_NONEXISTENT);
   }
-  const sender = await db.users.findOne({ address: senderAddress });
-  if (!sender) {
-    throw new HttpError(400, errors.USER_NONEXISTENT);
-  }
   if (addresses.length !== claps.length) {
     throw new HttpError(400, errors.LENGTH_MISMATCH);
   }

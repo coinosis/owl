@@ -64,8 +64,12 @@ app.post('/payu', async (req, res, next) => {
 
 app.get('/close', (req, res, next) => {
   try {
-    res.send("cierra esta pestaña para regresar a coinosis.");
-    const { referenceCode } = req.query;
+    const { referenceCode, lng, } = req.query;
+    if (lng === 'en') {
+      res.send("close this tab to return to coinosis.");
+    } else {
+      res.send("cierra esta pestaña para regresar a coinosis.");
+    }
     payu.setClosable(referenceCode);
   } catch (err) {
     handleError(err, next);

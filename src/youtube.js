@@ -27,6 +27,7 @@ const getAccessToken = async () => {
 const addBroadcast = async (
   accessToken,
   title,
+  description,
   scheduledStartTime,
   scheduledEndTime,
   privacyStatus
@@ -36,7 +37,7 @@ const addBroadcast = async (
     method: 'post',
     headers: { Authorization: `Bearer ${accessToken}`, },
     body: JSON.stringify({
-      snippet: { title, scheduledStartTime, scheduledEndTime, },
+      snippet: { title, description, scheduledStartTime, scheduledEndTime, },
       status: { privacyStatus, selfDeclaredMadeForKids: false, },
       contentDetails: {
         enableAutoStart: true,
@@ -88,6 +89,7 @@ const bind = async (accessToken, broadcastID, streamID) => {
 
 const addLiveStream = async (
   title,
+  description,
   scheduledStartTime,
   scheduledEndTime,
   privacyStatus
@@ -96,6 +98,7 @@ const addLiveStream = async (
   const { broadcastID } = await addBroadcast(
     accessToken,
     title,
+    description,
     scheduledStartTime,
     scheduledEndTime,
     privacyStatus

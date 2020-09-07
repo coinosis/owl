@@ -145,7 +145,7 @@ const postEvent = async req => {
   const {
     broadcastID,
     streamName,
-  } = await addLiveStream(name, start, end, 'unlisted');
+  } = await addLiveStream(name, description, start, end, 'public');
   const event = {
     address,
     name,

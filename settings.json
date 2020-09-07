@@ -26,7 +26,12 @@
     "merchantId": 508029,
     "feeThreshold": 0.9,
     "pullAttempts": 10,
-    "pullInterval": 20
+    "pullInterval": 20,
+    "youtube": {
+      "tokenEndpoint": "https://accounts.google.com/o/oauth2/token",
+      "broadcastEndpoint": "https://www.googleapis.com/youtube/v3/liveBroadcasts",
+      "streamEndpoint": "https://www.googleapis.com/youtube/v3/liveStreams"
+    }
   },
   "testing": {
     "environmentId": "testing",
@@ -38,7 +43,12 @@
     "merchantId": 508029,
     "feeThreshold": 0.9,
     "pullAttempts": 3600,
-    "pullInterval": 10000
+    "pullInterval": 10000,
+    "youtube": {
+      "tokenEndpoint": "https://accounts.google.com/o/oauth2/token",
+      "broadcastEndpoint": "https://www.googleapis.com/youtube/v3/liveBroadcasts",
+      "streamEndpoint": "https://www.googleapis.com/youtube/v3/liveStreams"
+    }
   },
   "staging": {
     "environmentId": "staging",
@@ -50,7 +60,12 @@
     "merchantId": 845239,
     "feeThreshold": 0.9,
     "pullAttempts": 3600,
-    "pullInterval": 10000
+    "pullInterval": 10000,
+    "youtube": {
+      "tokenEndpoint": "https://accounts.google.com/o/oauth2/token",
+      "broadcastEndpoint": "https://www.googleapis.com/youtube/v3/liveBroadcasts",
+      "streamEndpoint": "https://www.googleapis.com/youtube/v3/liveStreams"
+    }
   },
   "production": {
     "environmentId": "",
@@ -62,6 +77,11 @@
     "merchantId": 845239,
     "feeThreshold": 0.9,
     "pullAttempts": 3600,
-    "pullInterval": 10000
+    "pullInterval": 10000,
+    "youtube": {
+      "tokenEndpoint": "https://accounts.google.com/o/oauth2/token",
+      "broadcastEndpoint": "https://www.googleapis.com/youtube/v3/liveBroadcasts",
+      "streamEndpoint": "https://www.googleapis.com/youtube/v3/liveStreams"
+    }
   }
 }

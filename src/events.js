@@ -1,6 +1,7 @@
 const { HttpError, errors } = require('./control.js');
 const dbModule = require('./db.js');
 const web3 = require('./web3.js');
+const { addLiveStream } = require('./youtube.js');
 
 let db;
 const initialize = () => {
@@ -141,6 +142,10 @@ const postEvent = async req => {
     throw new HttpError(400, errors.INVALID_DATE);
   }
   const version = 2;
+  const {
+    broadcastID,
+    streamName,
+  } = await addLiveStream(name, start, end, 'unlisted');
   const event = {
     address,
     name,
@@ -156,6 +161,8 @@ const postEvent = async req => {
     signature,
     creation: creationDate,
     version,
+    broadcastID,
+    streamName,
   }
   const effect = await db.events.insertOne(event);
   if (effect.result.ok && effect.ops.length) {

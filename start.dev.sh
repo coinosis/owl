@@ -1,5 +1,6 @@
 #! /bin/bash
 
 mongod --dbpath=db > /dev/null &
-PRIVATE_KEY=$(cat ./.privateKey) nodemon ./src/server.js &
+source .secret
+nodemon ./src/server.js &
 ./loclx.sh

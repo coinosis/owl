@@ -9,7 +9,12 @@
     "merchantId": 508029,
     "feeThreshold": 0.9,
     "pullAttempts": 3600,
-    "pullInterval": 10000
+    "pullInterval": 10000,
+    "youtube": {
+      "tokenEndpoint": "https://accounts.google.com/o/oauth2/token",
+      "broadcastEndpoint": "https://www.googleapis.com/youtube/v3/liveBroadcasts",
+      "streamEndpoint": "https://www.googleapis.com/youtube/v3/liveStreams"
+    }
   },
   "unit": {
     "environmentId": "unit",

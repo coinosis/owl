@@ -3,4 +3,4 @@ package-lock.json
 db
 unitdb
 backup
-.privateKey
+.secret

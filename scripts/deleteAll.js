@@ -12,3 +12,5 @@ db.distributions.deleteMany({});
 db.distributions.dropIndexes();
 db.closable.deleteMany({});
 db.closable.dropIndexes();
+db.claps.deleteMany({});
+db.claps.dropIndexes();

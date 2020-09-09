@@ -33,11 +33,17 @@ const addBroadcast = async (
   privacyStatus
 ) => {
   const query = `${broadcastEndpoint}?part=snippet,status,contentDetails`;
+  const validDescription = description.replace(/[<>]/g, '');
   const response = await fetch(query, {
     method: 'post',
     headers: { Authorization: `Bearer ${accessToken}`, },
     body: JSON.stringify({
-      snippet: { title, description, scheduledStartTime, scheduledEndTime, },
+      snippet: {
+        title,
+        description: validDescription,
+        scheduledStartTime,
+        scheduledEndTime,
+      },
       status: { privacyStatus, selfDeclaredMadeForKids: false, },
       contentDetails: {
         enableAutoStart: true,

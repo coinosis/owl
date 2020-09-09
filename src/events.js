@@ -142,15 +142,16 @@ const postEvent = async req => {
     throw new HttpError(400, errors.INVALID_DATE);
   }
   const version = 2;
+  const shortDescription = description.substring(0, 5000);
   const {
     broadcastID,
     streamName,
-  } = await addLiveStream(name, description, start, end, 'public');
+  } = await addLiveStream(name, shortDescription, start, end, 'public');
   const event = {
     address,
     name,
     url,
-    description,
+    description: shortDescription,
     feeWei,
     currency,
     start: startDate,

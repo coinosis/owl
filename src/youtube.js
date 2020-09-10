@@ -100,6 +100,10 @@ const addLiveStream = async (
   scheduledEndTime,
   privacyStatus
 ) => {
+  if (!clientID || !clientSecret || !refreshToken) return {
+    broadcastID: null,
+    streamName: null,
+  };
   const accessToken = await getAccessToken();
   const { broadcastID } = await addBroadcast(
     accessToken,

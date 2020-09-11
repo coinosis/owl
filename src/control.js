@@ -13,7 +13,6 @@ const errors = {
   WRONG_PARAM_VALUES: 'wrong-param-values',
   USER_NONEXISTENT: 'user-nonexistent',
   USER_EXISTS: 'user-exists',
-  PAID_EVENT: 'paid-event',
   SERVICE_UNAVAILABLE: 'service-unavailable',
   NOT_FOUND: 'not-found',
   ADDRESS_EXISTS: 'address-exists',

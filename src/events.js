@@ -1,4 +1,4 @@
-const { HttpError, errors } = require('./control.js');
+const { HttpError, errors, checkSignature, } = require('./control.js');
 const dbModule = require('./db.js');
 const web3 = require('./web3.js');
 const { addLiveStream } = require('./youtube.js');
@@ -21,7 +21,24 @@ const getEvent = async url => {
   return event;
 }
 
-// only for free and pre-v2 events
+const attend = async req => {
+  const { event: url, user: attendee } = req.body;
+  await checkSignature(attendee, req);
+  const event = await getEvent(url);
+  if (event.feeWei > 0) {
+    return;
+  }
+  if (event.attendees && event.attendees.includes(attendee)) {
+    return;
+  }
+  db.events.updateOne(
+    { url },
+    { $push: { attendees: attendee } },
+    { upsert: true }
+  );
+}
+
+// only for non-deposit and pre-v2 events
 const getAttendees = async url => {
   const event = await db.events.findOne({ url });
   if (!event) {
@@ -174,4 +191,4 @@ const postEvent = async req => {
   }
 }
 
-module.exports = { initialize, getEvents, getEvent, getAttendees, postEvent };
+module.exports = { initialize, getEvents, getEvent, attend, getAttendees, postEvent };

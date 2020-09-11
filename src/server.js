@@ -186,6 +186,15 @@ app.post('/events', async (req, res, next) => {
   }
 });
 
+app.post('/attend', async (req, res, next) => {
+  try {
+    await events.attend(req);
+    res.status(200).end();
+  } catch (err) {
+    handleError(err, next);
+  }
+});
+
 app.get('/distribution/:event([a-z0-9-]{1,60})', async (req, res, next) => {
   try {
     const { event } = req.params;

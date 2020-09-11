@@ -89,7 +89,7 @@ const postEvent = async req => {
     signature,
   } = req.body;
   if (
-    !/^0x[0-9a-fA-F]{40}$/.test(address)
+    !/^$|^0x[0-9a-fA-F]{40}$/.test(address)
       || name === ''
       || !/^[a-z1-9-]{1}[a-z0-9-]{0,59}$/.test(url)
       || description === ''
@@ -128,8 +128,8 @@ const postEvent = async req => {
   if (signer.toLowerCase() !== organizer.toLowerCase()) {
     throw new HttpError(403, errors.UNAUTHORIZED, { signer, organizer });
   }
-  const addressCount = await db.events.countDocuments({address});
-  if (addressCount !== 0) {
+  const addressCount = await db.events.countDocuments({ address });
+  if (addressCount !== 0 && address !== '') {
     throw new HttpError(400, errors.ADDRESS_EXISTS);
   }
   const nameCount = await db.events.countDocuments({name});
@@ -156,7 +156,13 @@ const postEvent = async req => {
       || startDate >= endDate
       || endDate > afterEndDate
   ) {
-    throw new HttpError(400, errors.INVALID_DATE);
+    throw new HttpError(400, errors.INVALID_DATE, {
+      creationDate,
+      beforeStartDate,
+      startDate,
+      endDate,
+      afterEndDate,
+    });
   }
   const version = 2;
   const shortDescription = description.substring(0, 5000);

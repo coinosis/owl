@@ -22,8 +22,10 @@ const getEvent = async url => {
 }
 
 const attend = async req => {
-  const { event: url, user: attendee } = req.body;
-  await checkSignature(attendee, req);
+  const { event: url, user: attendee, signature } = req.body;
+  await checkSignature(attendee,
+                       { body: { event: url, user: attendee, signature, }}
+                      );
   const event = await getEvent(url);
   if (event.feeWei > 0) {
     return;

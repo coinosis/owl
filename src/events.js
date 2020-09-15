@@ -38,21 +38,14 @@ const attend = async req => {
   );
 }
 
-// only for non-deposit and pre-v2 events
+// only for non-deposit events
 const getAttendees = async url => {
   const event = await db.events.findOne({ url });
   if (!event) {
     throw new HttpError(404, errors.EVENT_NONEXISTENT);
   }
   const { attendees } = event;
-  if (attendees === undefined) {
-    throw new HttpError(400, errors.WRONG_EVENT_VERSION);
-  }
-  const users = await db.users
-        .find({ address: { $in: attendees }})
-        .toArray();
-  const sortedUsers = users.sort((a, b) => a.name.localeCompare(b.name));
-  return sortedUsers;
+  return attendees;
 }
 
 const postEvent = async req => {

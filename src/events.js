@@ -26,17 +26,18 @@ const attend = async req => {
   // await checkSignature(attendee,
   //                      { body: { event: url, user: attendee, signature, }}
   //                     );
+  const lowercaseAttendee = attendee.toLowerCase();
   const event = await getEvent(url);
   if (event.feeWei > 0) {
     return;
   }
-  if (event.attendees && event.attendees.includes(attendee)) {
+  if (event.attendees && event.attendees.includes(lowercaseAttendee)) {
     return;
   }
   db.events.updateOne(
-    { url },
-    { $push: { attendees: attendee } },
-    { upsert: true }
+    { url, },
+    { $push: { attendees: lowercaseAttendee, } },
+    { upsert: true, }
   );
 }
 

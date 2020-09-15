@@ -23,20 +23,20 @@ const getEvent = async url => {
 
 const attend = async req => {
   const { event: url, user: attendee, signature } = req.body;
-  // await checkSignature(attendee,
-  //                      { body: { event: url, user: attendee, signature, }}
-  //                     );
-  const lowercaseAttendee = attendee.toLowerCase();
+  const checksumAttendee = web3.utils.toChecksumAddress(attendee);
+  await checkSignature(attendee,
+                       { body: { event: url, user: checksumAttendee, signature, }}
+                      );
   const event = await getEvent(url);
   if (event.feeWei > 0) {
     return;
   }
-  if (event.attendees && event.attendees.includes(lowercaseAttendee)) {
+  if (event.attendees && event.attendees.includes(checksumAttendee)) {
     return;
   }
   db.events.updateOne(
     { url, },
-    { $push: { attendees: lowercaseAttendee, } },
+    { $push: { attendees: checksumAttendee, } },
     { upsert: true, }
   );
 }

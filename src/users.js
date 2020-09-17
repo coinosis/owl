@@ -27,7 +27,8 @@ const getUsers = async () => {
 }
 
 const getUser = async address => {
-  const user = await db.users.findOne({ address });
+  const checksumAddress = web3.utils.toChecksumAddress(address);
+  const user = await db.users.findOne({ address: checksumAddress, });
   if (!user) {
     throw new HttpError(404, errors.USER_NONEXISTENT);
   }

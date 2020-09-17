@@ -179,6 +179,16 @@ app.get('/event/:url([a-z0-9-]{1,60})/attendees', async (req, res, next) => {
   }
 });
 
+app.get('/courses', async (req, res, next) => {
+  try {
+    const courseList = await courses.getCourses();
+    console.log(courseList);
+    res.json(courseList);
+  } catch (err) {
+    handleError(err, next);
+  }
+});
+
 app.post('/courses', async (req, res, next) => {
   try {
     const result = await courses.postCourse(req);

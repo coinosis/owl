@@ -14,6 +14,11 @@ const initialize = () => {
   db = dbModule.getCollections();
 }
 
+const getCourses = async () => {
+  const courseList = await db.courses.find().toArray();
+  return courseList;
+}
+
 const postCourse = async req => {
   const expectedParams = {
     name: isString,
@@ -58,4 +63,4 @@ const postCourse = async req => {
   }
 }
 
-module.exports = { initialize, postCourse, };
+module.exports = { initialize, getCourses, postCourse, };

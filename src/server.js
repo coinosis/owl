@@ -6,6 +6,7 @@ const eth = require('./eth.js');
 const payu = require('./payu.js');
 const users = require('./users.js');
 const events = require('./events.js');
+const courses = require('./courses.js');
 const distributions = require('./distributions.js');
 const assessments = require('./assessments.js');
 
@@ -17,6 +18,7 @@ const initialize = async () => {
   payu.initialize();
   users.initialize();
   events.initialize();
+  courses.initialize();
   distributions.initialize();
   assessments.initialize();
   eth.initialize();
@@ -172,6 +174,15 @@ app.get('/event/:url([a-z0-9-]{1,60})/attendees', async (req, res, next) => {
     const { url } = req.params;
     const attendees = await events.getAttendees(url);
     res.json(attendees);
+  } catch (err) {
+    handleError(err, next);
+  }
+});
+
+app.post('/courses', async (req, res, next) => {
+  try {
+    const result = await courses.postCourse(req);
+    res.status(201).json(result);
   } catch (err) {
     handleError(err, next);
   }

@@ -16,6 +16,7 @@ const getCollections = () => {
   return {
     users: db.collection('users'),
     events: db.collection('events'),
+    courses: db.collection('courses'),
     claps: db.collection('claps'),
     assessments: db.collection('assessments'),
     payments: db.collection('payments'),

@@ -19,6 +19,7 @@ const errors = {
   DISTRIBUTION_EXISTS: 'distribution-exists',
   EVENT_NONEXISTENT: 'event-nonexistent',
   EVENT_EXISTS: 'event-exists',
+  COURSE_EXISTS: 'course-exists',
   DISTRIBUTION_NONEXISTENT: 'distribution-nonexistent',
   INVALID_FEE: 'invalid-fee',
   INVALID_CURRENCY: 'invalid-currency',
@@ -83,6 +84,8 @@ const isTelegram = value => /^@[a-zA-Z0-9_]{5,32}$/.test(value);
 const isAddress = value => web3.utils.isAddress(value);
 const isAddressArray = value => value.every(e => web3.utils.isAddress(e));
 const isNumberArray = value => value.every(e => !isNaN(e));
+const isURL = value => /^[a-z1-9-]{1}[a-z0-9-]{0,59}$/.test(value);
+const isURLArray = value => value.every(e => isURL(e));
 
 const checkSignature = async (expectedSigner, req) => {
   const { signature, ...object } = req.body;
@@ -109,13 +112,19 @@ const checkParams = async (expected, actual) => {
   const expectedNames = Object.keys(expected);
   const actualNames = Object.keys(actual);
   if (!expectedNames.every(name => actualNames.includes(name))) {
-    throw new HttpError(400, errors.INSUFFICIENT_PARAMS);
+    throw new HttpError(400, errors.INSUFFICIENT_PARAMS, {
+      expectedNames,
+      actualNames,
+    });
   }
   for (const name in expected) {
     const test = expected[name];
     const actualValue = actual[name];
     if (!test(actualValue)) {
-      throw new HttpError(400, errors.WRONG_PARAM_VALUES);
+      throw new HttpError(400, errors.WRONG_PARAM_VALUES, {
+        name,
+        actualValue,
+      });
     }
   }
 }
@@ -157,4 +166,6 @@ module.exports = {
   isNumberArray,
   isStringLongerThan,
   isCurrencyCode,
+  isURL,
+  isURLArray,
 }

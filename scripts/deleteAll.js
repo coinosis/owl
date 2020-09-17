@@ -2,6 +2,8 @@ db.users.deleteMany({});
 db.users.dropIndexes();
 db.events.deleteMany({});
 db.events.dropIndexes();
+db.courses.deleteMany({});
+db.courses.dropIndexes();
 db.assessments.deleteMany({});
 db.assessments.dropIndexes();
 db.payments.deleteMany({});

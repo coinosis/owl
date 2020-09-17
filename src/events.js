@@ -1,4 +1,4 @@
-const { HttpError, errors, checkSignature, } = require('./control.js');
+const { HttpError, errors, checkSignature, isURL, } = require('./control.js');
 const dbModule = require('./db.js');
 const web3 = require('./web3.js');
 const { addLiveStream } = require('./youtube.js');
@@ -89,7 +89,7 @@ const postEvent = async req => {
   if (
     !/^$|^0x[0-9a-fA-F]{40}$/.test(address)
       || name === ''
-      || !/^[a-z1-9-]{1}[a-z0-9-]{0,59}$/.test(url)
+      || !isURL(url)
       || description === ''
       || isNaN(Number(feeWei))
       || currency === ''
@@ -134,6 +134,14 @@ const postEvent = async req => {
   const nameCount = await db.events.countDocuments({name});
   if (nameCount !== 0) {
     throw new HttpError(400, errors.EVENT_EXISTS);
+  }
+  const courseNameCount = await db.courses.countDocuments({ name });
+  if (courseNameCount !== 0) {
+    throw new HttpError(400, errors.COURSE_EXISTS, { name });
+  }
+  const courseURLCount = await db.courses.countDocuments({ url });
+  if (courseURLCount !== 0) {
+    throw new HttpError(400, errors.COURSE_EXISTS, { url });
   }
   const urlCount = await db.events.countDocuments({url});
   if (urlCount !== 0) {

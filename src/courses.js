@@ -7,6 +7,7 @@ const {
   isAddress,
   isString,
   isURLArray,
+  sameAddress,
 } = require('./control.js');
 
 let db;
@@ -48,9 +49,15 @@ const postCourse = async req => {
   }
   for (let i = 0; i < events.length; i++) {
     const url = events[i];
-    const urlCount = await db.events.countDocuments({ url });
-    if (urlCount !== 1) {
+    const event = await db.events.findOne({ url });
+    if (!event) {
       throw new HttpError(400, errors.EVENT_NONEXISTENT, { url });
+    }
+    if (!sameAddress(event.organizer, organizer)) {
+      throw new HttpError(403, errors.UNAUTHORIZED, {
+        eventOrganizer: event.organizer,
+        courseOrganizer: organizer,
+      });
     }
   }
   const course = { name, url, description, events, organizer, };

@@ -1,4 +1,5 @@
 const dbModule = require('./db.js');
+const web3 = require('./web3.js');
 const {
   HttpError,
   errors,
@@ -68,7 +69,13 @@ const postCourse = async req => {
       });
     }
   }
-  const course = { name, url, description, events, organizer, };
+  const course = {
+    name,
+    url,
+    description,
+    events,
+    organizer: web3.utils.toChecksumAddress(organizer),
+  };
   const effect = await db.courses.insertOne(course);
   if (effect.result.ok && effect.ops.length) {
     return effect.ops[0];

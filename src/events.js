@@ -135,13 +135,13 @@ const postEvent = async req => {
   if (nameCount !== 0) {
     throw new HttpError(400, errors.EVENT_EXISTS);
   }
-  const courseNameCount = await db.courses.countDocuments({ name });
-  if (courseNameCount !== 0) {
-    throw new HttpError(400, errors.COURSE_EXISTS, { name });
+  const seriesNameCount = await db.series.countDocuments({ name });
+  if (seriesNameCount !== 0) {
+    throw new HttpError(400, errors.SERIES_EXISTS, { name });
   }
-  const courseURLCount = await db.courses.countDocuments({ url });
-  if (courseURLCount !== 0) {
-    throw new HttpError(400, errors.COURSE_EXISTS, { url });
+  const seriesURLCount = await db.series.countDocuments({ url });
+  if (seriesURLCount !== 0) {
+    throw new HttpError(400, errors.SERIES_EXISTS, { url });
   }
   const urlCount = await db.events.countDocuments({url});
   if (urlCount !== 0) {

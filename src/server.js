@@ -6,7 +6,7 @@ const eth = require('./eth.js');
 const payu = require('./payu.js');
 const users = require('./users.js');
 const events = require('./events.js');
-const courses = require('./courses.js');
+const series = require('./courses.js');
 const distributions = require('./distributions.js');
 const assessments = require('./assessments.js');
 
@@ -18,7 +18,7 @@ const initialize = async () => {
   payu.initialize();
   users.initialize();
   events.initialize();
-  courses.initialize();
+  series.initialize();
   distributions.initialize();
   assessments.initialize();
   eth.initialize();
@@ -179,29 +179,28 @@ app.get('/event/:url([a-z0-9-]{1,60})/attendees', async (req, res, next) => {
   }
 });
 
-app.get('/courses', async (req, res, next) => {
+app.get('/series', async (req, res, next) => {
   try {
-    const courseList = await courses.getCourses();
-    console.log(courseList);
-    res.json(courseList);
+    const seriesList = await series.getSeries();
+    res.json(seriesList);
   } catch (err) {
     handleError(err, next);
   }
 });
 
-app.get('/course/:url([a-z0-9-]{1,60})', async (req, res, next) => {
+app.get('/series/:url([a-z0-9-]{1,60})', async (req, res, next) => {
   try {
     const { url } = req.params;
-    const course = await courses.getCourse(url);
-    res.json(course);
+    const series = await series.getASeries(url);
+    res.json(series);
   } catch (err) {
     handleError(err, next);
   }
 });
 
-app.post('/courses', async (req, res, next) => {
+app.post('/series', async (req, res, next) => {
   try {
-    const result = await courses.postCourse(req);
+    const result = await series.postSeries(req);
     res.status(201).json(result);
   } catch (err) {
     handleError(err, next);

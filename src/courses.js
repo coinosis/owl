@@ -16,20 +16,20 @@ const initialize = () => {
   db = dbModule.getCollections();
 }
 
-const getCourses = async () => {
-  const courseList = await db.courses.find().toArray();
-  return courseList;
+const getSeries = async () => {
+  const seriesList = await db.series.find().toArray();
+  return seriesList;
 }
 
-const getCourse = async url => {
-  const course = await db.courses.findOne({ url });
-  if (!course) {
-    throw new HttpError(404, errors.COURSE_NONEXISTENT);
+const getASeries = async url => {
+  const series = await db.series.findOne({ url });
+  if (!series) {
+    throw new HttpError(404, errors.SERIES_NONEXISTENT);
   }
-  return course;
+  return series;
 }
 
-const postCourse = async req => {
+const postSeries = async req => {
   const expectedParams = {
     name: isString,
     url: isString,
@@ -40,13 +40,13 @@ const postCourse = async req => {
   await checkParams(expectedParams, req.body);
   const { name, url, description, events, organizer, } = req.body;
   await checkSignature(organizer, req);
-  const courseNameCount = await db.courses.countDocuments({ name });
-  if (courseNameCount !== 0) {
-    throw new HttpError(400, errors.COURSE_EXISTS, { name });
+  const seriesNameCount = await db.series.countDocuments({ name });
+  if (seriesNameCount !== 0) {
+    throw new HttpError(400, errors.SERIES_EXISTS, { name });
   }
-  const courseURLCount = await db.courses.countDocuments({ url });
-  if (courseURLCount !== 0) {
-    throw new HttpError(400, errors.COURSE_EXISTS, { url });
+  const seriesURLCount = await db.series.countDocuments({ url });
+  if (seriesURLCount !== 0) {
+    throw new HttpError(400, errors.SERIES_EXISTS, { url });
   }
   const nameCount = await db.events.countDocuments({ name });
   if (nameCount !== 0) {
@@ -65,18 +65,18 @@ const postCourse = async req => {
     if (!sameAddress(event.organizer, organizer)) {
       throw new HttpError(403, errors.UNAUTHORIZED, {
         eventOrganizer: event.organizer,
-        courseOrganizer: organizer,
+        seriesOrganizer: organizer,
       });
     }
   }
-  const course = {
+  const series = {
     name,
     url,
     description,
     events,
     organizer: web3.utils.toChecksumAddress(organizer),
   };
-  const effect = await db.courses.insertOne(course);
+  const effect = await db.series.insertOne(series);
   if (effect.result.ok && effect.ops.length) {
     return effect.ops[0];
   } else {
@@ -85,4 +85,4 @@ const postCourse = async req => {
   }
 }
 
-module.exports = { initialize, getCourses, getCourse, postCourse, };
+module.exports = { initialize, getSeries, getASeries, postSeries, };

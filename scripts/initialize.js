@@ -1,8 +1,8 @@
 db.users.createIndex({ address: 1 }, { unique: true });
 db.events.createIndex({ url: 1 }, { unique: true });
 db.events.createIndex({ name: 1 }, { unique: true });
-db.courses.createIndex({ url: 1 }, { unique: true, });
-db.courses.createIndex({ name: 1 }, { unique: true, });
+db.series.createIndex({ url: 1 }, { unique: true, });
+db.series.createIndex({ name: 1 }, { unique: true, });
 db.events.createIndex({ address: 1 }, { unique: true });
 db.transactions.createIndex({ event: 1, user: 1 }, { unique: true });
 db.distributions.createIndex({ event: 1 }, { unique: true });

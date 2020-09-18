@@ -18,7 +18,8 @@ const initialize = () => {
 }
 
 const checkUserExists = async address => {
-  const count = await db.users.countDocuments({ address });
+  const checksumAddress = web3.utils.toChecksumAddress(address);
+  const count = await db.users.countDocuments({ address: checksumAddress, });
   if (count === 0) {
     throw new HttpError(400, errors.USER_NONEXISTENT);
   }
@@ -31,11 +32,13 @@ const getUsers = async () => {
 
 const getUser = async address => {
   const checksumAddress = web3.utils.toChecksumAddress(address);
-  const user = await db.users.findOne({ address: checksumAddress, });
-  if (!user) {
-    throw new HttpError(404, errors.USER_NONEXISTENT);
-  }
-  return user;
+  const checksumUser = await db.users.findOne({ address: checksumAddress, });
+  if (checksumUser) return checksumUser;
+  const user = await db.users.findOne({ address: address.toLowerCase() });
+  if (user) return user;
+  throw new HttpError(404, errors.USER_NONEXISTENT, {
+    address: checksumAddress,
+  });
 }
 
 const putUser = async req => {
@@ -70,11 +73,23 @@ const postUser = async req => {
   if (nameCount > 0) {
     throw new HttpError(400, errors.USER_EXISTS, { name, });
   }
-  const addressCount = await db.users.countDocuments({ address, });
-  if (addressCount > 0) {
-    throw new HttpError(400, errors.USER_EXISTS, { address, });
+  const lowercaseAddress = address.toLowerCase();
+  const lowercaseAddressCount = await db.users.countDocuments({
+    address: lowercaseAddress,
+  });
+  if (lowercaseAddressCount > 0) {
+    throw new HttpError(400, errors.USER_EXISTS, {
+      address: lowercaseAddress,
+    });
   }
-  const effect = await db.users.insertOne({ name, address, });
+  const checksumAddress = web3.utils.toChecksumAddress(address);
+  const checksumAddressCount = await db.users.countDocuments({
+    address: checksumAddress,
+  });
+  if (checksumAddressCount > 0) {
+    throw new HttpError(400, errors.USER_EXISTS, { address: checksumAddress, });
+  }
+  const effect = await db.users.insertOne({ name, address: checksumAddress, });
   if (effect.result.ok && effect.ops.length) {
     return effect.ops[0];
   } else {

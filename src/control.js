@@ -88,6 +88,7 @@ const isURL = value => /^[a-z1-9-]{1}[a-z0-9-]{0,59}$/.test(value);
 const isURLArray = value => value.every(e => isURL(e));
 
 const checkSignature = async (expectedSigner, req) => {
+  const expectedSignerCS = web3.utils.toChecksumAddress(expectedSigner);
   const { signature, ...object } = req.body;
   if (!Object.keys(object).length) {
     throw new HttpError(400, errors.INSUFFICIENT_PARAMS);
@@ -103,8 +104,12 @@ const checkSignature = async (expectedSigner, req) => {
   } catch (err) {
     throw new HttpError(401, errors.MALFORMED_SIGNATURE);
   }
-  if (expectedSigner !== actualSigner) {
-    throw new HttpError(403, errors.UNAUTHORIZED);
+  const actualSignerCS = web3.utils.toChecksumAddress(actualSigner);
+  if (expectedSignerCS !== actualSignerCS) {
+    throw new HttpError(403, errors.UNAUTHORIZED, {
+      expectedSignerCS,
+      actualSignerCS,
+    });
   }
 }
 

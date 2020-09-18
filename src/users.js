@@ -2,9 +2,12 @@ const {
   HttpError,
   errors,
   checkOptionalParams,
+  checkParams,
   checkSignature,
   isEmail,
   isTelegram,
+  isString,
+  isAddress,
 } = require('./control.js');
 const dbModule = require('./db.js');
 const web3 = require('./web3.js');
@@ -56,43 +59,22 @@ const putUser = async req => {
 }
 
 const postUser = async req => {
-  const params = Object.keys(req.body);
-  if (
-    !params.includes('name')
-      || !params.includes('address')
-      || !params.includes('signature')
-  ) {
-    throw new HttpError(400, errors.INSUFFICIENT_PARAMS);
-  }
-  const { name, address, signature } = req.body;
-  if (
-    name === ''
-      || !web3.utils.isAddress(address)
-      || signature === ''
-  ) {
-    throw new HttpError(400, errors.WRONG_PARAM_VALUES);
-  }
-  const payload = JSON.stringify({address, name});
-  const hex = web3.utils.utf8ToHex(payload);
-  let signer;
-  try {
-    signer = web3.eth.accounts.recover(hex, signature);
-  } catch (err) {
-    throw new HttpError(401, errors.MALFORMED_SIGNATURE);
-  }
-  if (signer !== address) {
-    throw new HttpError(403, errors.UNAUTHORIZED);
-  }
-  const nameCount = await db.users.countDocuments({name});
+  const expectedParams = {
+    name: isString,
+    address: isAddress,
+  };
+  await checkParams(expectedParams, req.body);
+  const { name, address, } = req.body;
+  await checkSignature(address, req);
+  const nameCount = await db.users.countDocuments({ name, });
   if (nameCount > 0) {
-    throw new HttpError(400, errors.USER_EXISTS);
+    throw new HttpError(400, errors.USER_EXISTS, { name, });
   }
-  const addressCount = await db.users.countDocuments({address});
+  const addressCount = await db.users.countDocuments({ address, });
   if (addressCount > 0) {
-    throw new HttpError(400, errors.USER_EXISTS);
+    throw new HttpError(400, errors.USER_EXISTS, { address, });
   }
-  const date = new Date();
-  const effect = await db.users.insertOne({name, address, date, signature});
+  const effect = await db.users.insertOne({ name, address, });
   if (effect.result.ok && effect.ops.length) {
     return effect.ops[0];
   } else {
@@ -100,4 +82,4 @@ const postUser = async req => {
   }
 }
 
-module.exports = { initialize, getUsers, getUser, putUser, postUser };
+module.exports = { initialize, getUsers, getUser, putUser, postUser, };

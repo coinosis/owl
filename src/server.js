@@ -6,7 +6,7 @@ const eth = require('./eth.js');
 const payu = require('./payu.js');
 const users = require('./users.js');
 const events = require('./events.js');
-const series = require('./courses.js');
+const series = require('./series.js');
 const distributions = require('./distributions.js');
 const assessments = require('./assessments.js');
 

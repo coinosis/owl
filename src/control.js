@@ -20,6 +20,7 @@ const errors = {
   EVENT_NONEXISTENT: 'event-nonexistent',
   EVENT_EXISTS: 'event-exists',
   COURSE_EXISTS: 'course-exists',
+  COURSE_NONEXISTENT: 'course-nonexistent',
   DISTRIBUTION_NONEXISTENT: 'distribution-nonexistent',
   INVALID_FEE: 'invalid-fee',
   INVALID_CURRENCY: 'invalid-currency',

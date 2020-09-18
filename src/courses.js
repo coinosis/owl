@@ -20,6 +20,14 @@ const getCourses = async () => {
   return courseList;
 }
 
+const getCourse = async url => {
+  const course = await db.courses.findOne({ url });
+  if (!course) {
+    throw new HttpError(404, errors.COURSE_NONEXISTENT);
+  }
+  return course;
+}
+
 const postCourse = async req => {
   const expectedParams = {
     name: isString,
@@ -70,4 +78,4 @@ const postCourse = async req => {
   }
 }
 
-module.exports = { initialize, getCourses, postCourse, };
+module.exports = { initialize, getCourses, getCourse, postCourse, };

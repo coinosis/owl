@@ -189,6 +189,16 @@ app.get('/courses', async (req, res, next) => {
   }
 });
 
+app.get('/course/:url([a-z0-9-]{1,60})', async (req, res, next) => {
+  try {
+    const { url } = req.params;
+    const course = await courses.getCourse(url);
+    res.json(course);
+  } catch (err) {
+    handleError(err, next);
+  }
+});
+
 app.post('/courses', async (req, res, next) => {
   try {
     const result = await courses.postCourse(req);

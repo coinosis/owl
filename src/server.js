@@ -191,8 +191,8 @@ app.get('/series', async (req, res, next) => {
 app.get('/series/:url([a-z0-9-]{1,60})', async (req, res, next) => {
   try {
     const { url } = req.params;
-    const series = await series.getASeries(url);
-    res.json(series);
+    const aSeries = await series.getASeries(url);
+    res.json(aSeries);
   } catch (err) {
     handleError(err, next);
   }

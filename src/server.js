@@ -9,6 +9,7 @@ const events = require('./events.js');
 const series = require('./series.js');
 const distributions = require('./distributions.js');
 const assessments = require('./assessments.js');
+const paypal = require('./paypal.js');
 
 const port = process.env.PORT || 3000;
 
@@ -304,7 +305,16 @@ app.post('/assessments', async (req, res, next) => {
   }
 });
 
-app.use((err, req, res, next) => {
+app.post('/paypal/orders', async (req, res, next) => {
+  try {
+    const { value } = req.body;
+    await paypal.postOrder(value);
+  } catch (err) {
+    handleError(err, next);
+  }
+});
+
+app.use((err, req, res) => {
   res.status(err.status || 500).json(err.message);
 });
 

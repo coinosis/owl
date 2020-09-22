@@ -8,5 +8,10 @@ settings.youtube = {
   clientSecret: process.env.YOUTUBE_CLIENT_SECRET,
   refreshToken: process.env.YOUTUBE_REFRESH_TOKEN,
 };
+settings.paypal = {
+  ...settings.paypal,
+  clientID: process.env.PAYPAL_CLIENT_ID,
+  clientSecret: process.env.PAYPAL_CLIENT_SECRET,
+};
 
 module.exports = settings;

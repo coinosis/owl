@@ -307,8 +307,10 @@ app.post('/assessments', async (req, res, next) => {
 
 app.post('/paypal/orders', async (req, res, next) => {
   try {
-    const { value } = req.body;
-    await paypal.postOrder(value);
+    const baseURL = `https://${ req.get('host') }`;
+    const { value, locale, } = req.body;
+    const approveURL = await paypal.postOrder(value, locale, baseURL);
+    res.json(approveURL);
   } catch (err) {
     handleError(err, next);
   }

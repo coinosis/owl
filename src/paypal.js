@@ -28,8 +28,9 @@ const getToken = async () => {
   return token;
 }
 
-const postOrder = async value => {
+const postOrder = async (value, locale, baseURL) => {
   const token = await getToken();
+  const returnURL = `${ baseURL }/paypal/close`;
   const response = await fetch(ordersEndpoint, {
     method: 'post',
     headers: {
@@ -42,6 +43,15 @@ const postOrder = async value => {
         currency_code: 'USD',
         value,
       } } ],
+      application_context: {
+        brand_name: 'coinosis',
+        locale,
+        landing_page: 'BILLING',
+        shipping_preference: 'NO_SHIPPING',
+        user_action: 'PAY_NOW',
+        return_url: returnURL,
+        cancel_url: returnURL,
+      },
     }),
   });
   if (!response.ok) {
@@ -50,7 +60,8 @@ const postOrder = async value => {
     });
   }
   const data = await response.json();
-  console.log(data);
+  const approveLink = data.links.find(link => link.rel === 'approve');
+  return approveLink.href;
 }
 
 module.exports = { postOrder, };

@@ -18,9 +18,16 @@ npm install -g nodemon
 
 ```
 
-## run
+## `.secret` file
 
-Since owl creates Ethereum transactions on its own, you need to provide it the private key of a funded Ethereum account. Store it in `.privateKey`
+You need a `.secret` file with sensitive information about your proyect.
+
+1. `cp secret.template .secret`
+2. Fill the `PRIVATE_KEY` variable with the 0x-prefixed private key of a funded Ethereum account. It should be funded on whatever network you're operating on.
+3. Optionally fill the YouTube variables with information about your YouTube account. Use [this script](https://github.com/coinosis/owl/blob/dev/scripts/youtubeRefreshToken.sh) to get the refresh token.
+4. Optionally fill the PayPal variables with your PayPal account info.
+
+## run
 
 ```bash
 
@@ -51,12 +58,13 @@ $ mongo coinosis
 
 # DevOps
 
-## deploy to heroku
+## deploy
 
+1. create a mongoDB atlas account
 1. create a heroku account
-2. install the mongolab add-on
-3. deploy the code
-2. install [heroku CLI](https://devcenter.heroku.com/articles/heroku-cli#download-and-install)
+2. deploy the code
+3. add the DB variable pointing to your mongoDB atlas db
+3. install [heroku CLI](https://devcenter.heroku.com/articles/heroku-cli#download-and-install)
 4. `DB=$(heroku config:get DB -a <your-app-name>) scripts/initialize.sh`
 
 ## backup the production database & restore to any database
@@ -69,12 +77,13 @@ $ scripts/restore.sh testing backup/2020-06-22T18\:17\:32-05\:00/
 
 ```
 
-## migrate data from production to testing to development
+## migrate data from production to staging to testing to development
 
 ```bash
 
-scripts/prod2test.sh
-npm run start:dev
+scripts/prod2st.sh
+scritps/st2test.sh
+npm run start:dev # if it's not runnig already
 scripts/test2dev.sh
 
 ```

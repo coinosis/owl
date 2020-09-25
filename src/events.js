@@ -48,7 +48,7 @@ const getAttendees = async url => {
     throw new HttpError(404, errors.EVENT_NONEXISTENT);
   }
   const { attendees } = event;
-  return attendees;
+  return attendees || [];
 }
 
 const postEvent = async req => {

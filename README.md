@@ -13,7 +13,6 @@
 git clone https://github.com/coinosis/owl -b dev
 cd owl
 npm install
-mkdir db
 npm install -g nodemon
 
 ```
@@ -22,7 +21,7 @@ npm install -g nodemon
 
 You need a `.secret` file with sensitive information about your proyect.
 
-1. `cp secret.template .secret`
+1. `cp secret.template .secret # notice dot '.' prefix on .secret filename`
 2. Fill the `PRIVATE_KEY` variable with the 0x-prefixed private key of a funded Ethereum account. It should be funded on whatever network you're operating on.
 3. Optionally fill the YouTube variables with information about your YouTube account. Use [this script](https://github.com/coinosis/owl/blob/dev/scripts/youtubeRefreshToken.sh) to get the refresh token.
 4. Optionally fill the PayPal variables with your PayPal account info.

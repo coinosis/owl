@@ -35,6 +35,10 @@
       "tokenEndpoint": "https://accounts.google.com/o/oauth2/token",
       "broadcastEndpoint": "https://www.googleapis.com/youtube/v3/liveBroadcasts",
       "streamEndpoint": "https://www.googleapis.com/youtube/v3/liveStreams"
+    },
+    "paypal": {
+      "tokenEndpoint": "https://api.sandbox.paypal.com/v1/oauth2/token",
+      "ordersEndpoint": "https://api.sandbox.paypal.com/v2/checkout/orders"
     }
   },
   "testing": {
@@ -52,6 +56,10 @@
       "tokenEndpoint": "https://accounts.google.com/o/oauth2/token",
       "broadcastEndpoint": "https://www.googleapis.com/youtube/v3/liveBroadcasts",
       "streamEndpoint": "https://www.googleapis.com/youtube/v3/liveStreams"
+    },
+    "paypal": {
+      "tokenEndpoint": "https://api.sandbox.paypal.com/v1/oauth2/token",
+      "ordersEndpoint": "https://api.sandbox.paypal.com/v2/checkout/orders"
     }
   },
   "staging": {

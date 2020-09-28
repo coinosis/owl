@@ -69,24 +69,44 @@ const postOrder = async (event, user, value, locale, baseURL) => {
     });
   }
   const data = await response.json();
+  const referenceCode = data.id;
   const payment = {
-    referenceCode: data.id,
+    referenceCode,
     date: new Date(),
     amount: value,
     currency: 'USD',
     state: states.CREATED
   };
+  const key = `paypal.${ referenceCode }`;
   db.transactions.updateOne(
     { event, user, },
-    { $push: { paypal: payment, }, },
+    { $set: { [ key ]: payment, }, },
     { upsert: true, }
   );
   const approveLink = data.links.find(link => link.rel === 'approve');
   return approveLink.href;
 }
 
+const updateState = async referenceCode => {
+  const token = await getToken();
+  const response = await fetch(`${ ordersEndpoint }/${ referenceCode }`, {
+    method: 'get',
+    headers: {
+      Authorization: `Bearer ${ token }`,
+    },
+  });
+  const data = await response.json();
+  const { status: state, } = data;
+  const key = `paypal.${ referenceCode }`;
+  const stateKey = `${ key }.state`;
+  db.transactions.updateOne(
+    { [ key ]: { $exists: true }},
+    { $set: { [ stateKey ]: state }}
+  );
+}
+
 const closeOrder = async referenceCode => {
-  console.log(referenceCode);
+  updateState(referenceCode);
 }
 
 module.exports = { initialize, postOrder, closeOrder, };

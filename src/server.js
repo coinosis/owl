@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dbModule = require('./db.js');
-const { handleError } = require('./control.js');
+const { handleError, closeTab, } = require('./control.js');
 const eth = require('./eth.js');
 const payu = require('./payu.js');
 const users = require('./users.js');
@@ -69,11 +69,7 @@ app.post('/payu', async (req, res, next) => {
 app.get('/close', (req, res, next) => {
   try {
     const { referenceCode, lng, } = req.query;
-    if (lng === 'en') {
-      res.send("close this tab to return to coinosis.");
-    } else {
-      res.send("cierra esta pestaña para regresar a coinosis.");
-    }
+    res.send(closeTab(lng));
     payu.setClosable(referenceCode);
   } catch (err) {
     handleError(err, next);
@@ -308,7 +304,9 @@ app.post('/assessments', async (req, res, next) => {
 
 app.post('/paypal/orders', async (req, res, next) => {
   try {
-    const baseURL = `https://${ req.get('host') }`;
+    const host = req.get('host');
+    const protocol = host.startsWith('localhost') ? 'http' : 'https';
+    const baseURL = `${protocol}://${ host }`;
     const { event, user, value, locale, } = req.body;
     const approveURL = await paypal.postOrder(
       event,
@@ -318,6 +316,16 @@ app.post('/paypal/orders', async (req, res, next) => {
       baseURL
     );
     res.json(approveURL);
+  } catch (err) {
+    handleError(err, next);
+  }
+});
+
+app.get('/paypal/close', async (req, res, next) => {
+  try {
+    const { token: referenceCode } = req.query;
+    await paypal.closeOrder(referenceCode);
+    res.send(closeTab());
   } catch (err) {
     handleError(err, next);
   }

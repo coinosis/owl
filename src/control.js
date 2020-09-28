@@ -158,6 +158,14 @@ const checkOptionalParams = async (expected, req) => {
   }
 }
 
+const closeTab = language => {
+  if (language === 'es') {
+    return 'cierra esta pestaña para regresar a coinosis.';
+  } else {
+    return 'close this tab to return to coinosis.';
+  }
+}
+
 module.exports = {
   HttpError,
   InternalError,
@@ -180,4 +188,5 @@ module.exports = {
   isURL,
   isURLArray,
   sameAddress,
+  closeTab,
 }

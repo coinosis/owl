@@ -85,6 +85,8 @@ const postOrder = async (event, user, value, locale, baseURL) => {
   return approveLink.href;
 }
 
-module.exports = { postOrder, };
+const closeOrder = async referenceCode => {
+  console.log(referenceCode);
+}
 
 module.exports = { initialize, postOrder, closeOrder, };

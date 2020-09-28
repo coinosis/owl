@@ -17,6 +17,7 @@ let db;
 const initialize = async () => {
   await dbModule.connect();
   payu.initialize();
+  paypal.initialize();
   users.initialize();
   events.initialize();
   series.initialize();
@@ -308,8 +309,14 @@ app.post('/assessments', async (req, res, next) => {
 app.post('/paypal/orders', async (req, res, next) => {
   try {
     const baseURL = `https://${ req.get('host') }`;
-    const { value, locale, } = req.body;
-    const approveURL = await paypal.postOrder(value, locale, baseURL);
+    const { event, user, value, locale, } = req.body;
+    const approveURL = await paypal.postOrder(
+      event,
+      user,
+      value,
+      locale,
+      baseURL
+    );
     res.json(approveURL);
   } catch (err) {
     handleError(err, next);

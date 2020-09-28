@@ -5,7 +5,13 @@ const {
   clientSecret,
   ordersEndpoint,
 } = require('./settings.js').paypal;
-const { HttpError, errors, } = require('./control');
+const { HttpError, errors, states, } = require('./control');
+const dbModule = require('./db.js');
+
+let db;
+const initialize = () => {
+  db = dbModule.getCollections();
+}
 
 const getToken = async () => {
   const auth = `${clientID}:${clientSecret}`;
@@ -28,7 +34,7 @@ const getToken = async () => {
   return token;
 }
 
-const postOrder = async (value, locale, baseURL) => {
+const postOrder = async (event, user, value, locale, baseURL) => {
   const token = await getToken();
   const returnURL = `${ baseURL }/paypal/close`;
   const response = await fetch(ordersEndpoint, {
@@ -55,13 +61,30 @@ const postOrder = async (value, locale, baseURL) => {
     }),
   });
   if (!response.ok) {
+    const error = await response.json();
     throw new HttpError(500, errors.SERVICE_UNAVAILABLE, {
-      error: await response.json()
+      error,
+      details: error.details[0],
+      links: error.links[0],
     });
   }
   const data = await response.json();
+  const payment = {
+    referenceCode: data.id,
+    date: new Date(),
+    amount: value,
+    currency: 'USD',
+    state: states.CREATED
+  };
+  db.transactions.updateOne(
+    { event, user, },
+    { $push: { paypal: payment, }, },
+    { upsert: true, }
+  );
   const approveLink = data.links.find(link => link.rel === 'approve');
   return approveLink.href;
 }
 
 module.exports = { postOrder, };
+
+module.exports = { initialize, postOrder, closeOrder, };

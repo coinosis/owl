@@ -1,6 +1,7 @@
 const web3 = require('./web3.js');
 
 const states = {
+  CREATED: 'CREATED',
   NOT_SENT: 'REJECTED',
   SENT: 'PENDING',
   CONFIRMED: 'APPROVED',

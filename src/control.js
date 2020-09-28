@@ -5,6 +5,7 @@ const states = {
   NOT_SENT: 'REJECTED',
   SENT: 'PENDING',
   CONFIRMED: 'APPROVED',
+  APPROVED: 'APPROVED',
 };
 
 const errors = {

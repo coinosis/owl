@@ -7,6 +7,8 @@ const {
 } = require('./settings.js').paypal;
 const { HttpError, errors, states, } = require('./control');
 const dbModule = require('./db.js');
+const web3 = require('./web3.js');
+const { registerFor } = require('./eth.js');
 
 let db;
 const initialize = () => {
@@ -103,6 +105,24 @@ const updateState = async referenceCode => {
     { [ key ]: { $exists: true }},
     { $set: { [ stateKey ]: state }}
   );
+  if (state === states.APPROVED) {
+    const tx = await db.transactions.findOne({[ key ]: {$exists: true}});
+    const { user, event: eventURL, } = tx;
+    const event = await db.events.findOne({ url: eventURL, });
+    const result = await registerFor(event.address, user, event.feeWei);
+    const register = {
+      ...result,
+      referenceCode,
+      date: new Date(),
+      amount: web3.utils.fromWei(event.feeWei),
+      currency: 'ETH',
+    };
+    db.transactions.updateOne(
+      { event: eventURL, user, },
+      { $push: { register: register, }, },
+      { upsert: true, }
+    );
+  }
 }
 
 const closeOrder = async referenceCode => {

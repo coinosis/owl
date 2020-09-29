@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dbModule = require('./db.js');
-const { handleError, closeTab, } = require('./control.js');
+const { handleError, closeTab, checkSignature, } = require('./control.js');
 const eth = require('./eth.js');
 const payu = require('./payu.js');
 const users = require('./users.js');
@@ -304,6 +304,8 @@ app.post('/assessments', async (req, res, next) => {
 
 app.post('/paypal/orders', async (req, res, next) => {
   try {
+    const { user: expectedSigner } = req.body;
+    await checkSignature(expectedSigner, req);
     const host = req.get('host');
     const protocol = host.startsWith('localhost') ? 'http' : 'https';
     const baseURL = `${protocol}://${ host }`;

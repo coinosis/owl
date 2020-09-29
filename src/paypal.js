@@ -86,7 +86,7 @@ const postOrder = async (event, user, value, locale, baseURL) => {
     { upsert: true, }
   );
   const approveLink = data.links.find(link => link.rel === 'approve');
-  return approveLink.href;
+  return { referenceCode, approveURL: approveLink.href, };
 }
 
 const updateState = async referenceCode => {

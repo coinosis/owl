@@ -326,6 +326,7 @@ app.get('/paypal/close', async (req, res, next) => {
     const { token: referenceCode } = req.query;
     await paypal.closeOrder(referenceCode);
     res.send(closeTab());
+    payu.setClosable(referenceCode);
   } catch (err) {
     handleError(err, next);
   }

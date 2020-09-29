@@ -36,7 +36,10 @@ const getToken = async () => {
   return token;
 }
 
-const postOrder = async (event, user, value, locale, baseURL) => {
+const postOrder = async (eventURL, user, locale, baseURL) => {
+  const event = await db.events.findOne({ url: eventURL, });
+  const { feeWei } = event;
+  const feeUSD = Number(web3.utils.fromWei(feeWei)).toFixed(2);
   const token = await getToken();
   const returnURL = `${ baseURL }/paypal/close`;
   const response = await fetch(ordersEndpoint, {
@@ -49,7 +52,7 @@ const postOrder = async (event, user, value, locale, baseURL) => {
       intent: 'CAPTURE',
       purchase_units: [ { amount: {
         currency_code: 'USD',
-        value,
+        value: feeUSD,
       } } ],
       application_context: {
         brand_name: 'coinosis',
@@ -75,13 +78,13 @@ const postOrder = async (event, user, value, locale, baseURL) => {
   const payment = {
     referenceCode,
     date: new Date(),
-    amount: value,
+    amount: feeUSD,
     currency: 'USD',
     state: states.CREATED
   };
   const key = `paypal.${ referenceCode }`;
   db.transactions.updateOne(
-    { event, user, },
+    { event: eventURL, user, },
     { $set: { [ key ]: payment, }, },
     { upsert: true, }
   );

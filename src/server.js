@@ -309,14 +309,8 @@ app.post('/paypal/orders', async (req, res, next) => {
     const host = req.get('host');
     const protocol = host.startsWith('localhost') ? 'http' : 'https';
     const baseURL = `${protocol}://${ host }`;
-    const { event, user, value, locale, } = req.body;
-    const approveURL = await paypal.postOrder(
-      event,
-      user,
-      value,
-      locale,
-      baseURL
-    );
+    const { event, user, locale, } = req.body;
+    const approveURL = await paypal.postOrder(event, user, locale, baseURL);
     res.json(approveURL);
   } catch (err) {
     handleError(err, next);

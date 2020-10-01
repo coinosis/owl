@@ -36,6 +36,14 @@ npm run start:dev
 
 If running for the first time, run `scripts/initialize.sh`.
 
+# expose your local environment
+
+In order to expose your local environment to a public domain for PayU transactions, run
+
+`./loclx.sh <loclx-id>`
+
+Bear in mind that you need to specify this same `loclx-id` argument when runnig [cow](https://github.com/coinosis/cow).
+
 # Development
 
 ## Submit your changes

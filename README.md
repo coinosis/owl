@@ -2,11 +2,13 @@
 
 # Install owl
 
-## prerequisite
+## prerequisites
 
 * [mongodb](https://docs.mongodb.com/manual/administration/install-community/)
-
 In order to test that it was installed correctly run `mongod --dbpath=db`, inside the root of **owl**.
+
+* [localXpose](https://localxpose.io/#download)
+You need to have localXpose installed as an CLI, if you want to expose your local environment to PayU. Bear in mind that you need to add `loclx` to your `PATH`.
 
 ## install
 

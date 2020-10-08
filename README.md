@@ -6,6 +6,8 @@
 
 * [mongodb](https://docs.mongodb.com/manual/administration/install-community/)
 
+In order to test that it was installed correctly run `mongod --dbpath=db`, inside the root of **owl**.
+
 ## install
 
 ```bash

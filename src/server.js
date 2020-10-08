@@ -35,7 +35,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 app.get('/', (req, res) => {
-  res.json('KQfvp');
+  res.json('Last deploy: Oct 8th, 14:56');
 });
 
 app.get('/eth/price', async (req, res, next) => {

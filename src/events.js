@@ -175,6 +175,7 @@ const postEvent = async req => {
   const shortDescription = description.substring(0, 5000);
   const {
     broadcastID,
+    streamID,
     streamName,
   } = await addLiveStream(name, shortDescription, start, end, 'public');
   const event = {
@@ -194,6 +195,7 @@ const postEvent = async req => {
     creation: creationDate,
     version,
     broadcastID,
+    streamID,
     streamName,
   }
   const effect = await db.events.insertOne(event);
@@ -205,4 +207,11 @@ const postEvent = async req => {
   }
 }
 
-module.exports = { initialize, getEvents, getEvent, attend, getAttendees, postEvent };
+module.exports = {
+  initialize,
+  getEvents,
+  getEvent,
+  attend,
+  getAttendees,
+  postEvent,
+};

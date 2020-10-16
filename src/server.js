@@ -10,6 +10,7 @@ const series = require('./series.js');
 const distributions = require('./distributions.js');
 const assessments = require('./assessments.js');
 const paypal = require('./paypal.js');
+const youtube = require('./youtube.js');
 
 const port = process.env.PORT || 3000;
 
@@ -323,6 +324,16 @@ app.get('/paypal/close', async (req, res, next) => {
     await paypal.closeOrder(referenceCode);
     res.send(closeTab());
     payu.setClosable(referenceCode);
+  } catch (err) {
+    handleError(err, next);
+  }
+});
+
+app.get('/youtube/stream/:streamID', async (req, res, next) => {
+  try {
+    const { streamID } = req.params;
+    const status = await youtube.getStreamStatus(streamID);
+    res.json(status);
   } catch (err) {
     handleError(err, next);
   }

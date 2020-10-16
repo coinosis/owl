@@ -116,7 +116,19 @@ const addLiveStream = async (
   const { streamID, streamName } = await addStream(accessToken, title);
   const info = await bind(accessToken, broadcastID, streamID);
   console.log(info);
-  return { broadcastID, streamName, };
+  return { broadcastID, streamID, streamName, };
+}
+
+const getStreamStatus = async streamID => {
+  const accessToken = await getAccessToken();
+  const query = `${ streamEndpoint }?part=status&id=${ streamID }`;
+  const response = await fetch(query, {
+    method: 'get',
+    headers: { Authorization: `Bearer ${ accessToken }`, },
+  });
+  const data = await response.json();
+  const { streamStatus } = data.items[0].status;
+  return streamStatus;
 }
 
 module.exports = {
@@ -125,4 +137,5 @@ module.exports = {
   addStream,
   bind,
   addLiveStream,
+  getStreamStatus,
 };

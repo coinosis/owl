@@ -1,4 +1,7 @@
 const web3 = require('./web3.js');
+const util = require('util');
+
+const sleep = util.promisify(setTimeout);
 
 const states = {
   CREATED: 'CREATED',
@@ -190,4 +193,5 @@ module.exports = {
   isURLArray,
   sameAddress,
   closeTab,
+  sleep,
 }

@@ -2,6 +2,7 @@ const payu = require('../src/payu.js');
 const express = require('express');
 const chai = require('chai');
 const dbModule = require('../src/db.js');
+const { sleep } = require('../src/control.js');
 
 const startServer = handler => {
   const app = express();
@@ -29,7 +30,7 @@ describe('payu.js', async () => {
   };
 
   it('sleep', async () => {
-    await payu.sleep(1232);
+    await sleep(1232);
   });
 
   it('checkFee', () => {

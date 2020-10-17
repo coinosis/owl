@@ -1,6 +1,5 @@
 const fetch = require('node-fetch');
 const crypto = require('crypto');
-const util = require('util');
 const dbModule = require('./db.js');
 const {
   payUReports,
@@ -19,6 +18,7 @@ const {
   isPositiveNumber,
   isStringLongerThan,
   isCurrencyCode,
+  sleep,
 } = require('./control.js');
 const web3 = require('./web3.js');
 const { registerFor } = require('./eth.js');
@@ -39,8 +39,6 @@ const SUBMITTED = 'SUBMITTED';
 const USD = 'USD';
 const ETH = 'xDAI';
 const REGISTER = 'register';
-
-const sleep = util.promisify(setTimeout);
 
 const checkFee = ({ expected, actual }) => {
   const minExpectedFee = expected * feeThreshold;
@@ -327,7 +325,6 @@ module.exports = {
   getHash,
   getHashableAmount,
   checkFee,
-  sleep,
   paymentFetcher,
   setClosable,
   getClosable,

@@ -7,6 +7,7 @@ const { youtube: {
   broadcastEndpoint,
   streamEndpoint,
 } } = require('./settings.js');
+const { sleep } = require('./control.js');
 
 const getAccessToken = async () => {
   const response = await fetch(tokenEndpoint, {
@@ -114,8 +115,12 @@ const addLiveStream = async (
     privacyStatus
   );
   const { streamID, streamName } = await addStream(accessToken, title);
-  const info = await bind(accessToken, broadcastID, streamID);
-  console.log(info);
+  await bind(accessToken, broadcastID, streamID);
+  const afterEnd = new Date(scheduledEndTime).getTime();
+  const longAfterEnd = afterEnd + 60000;
+  const now = new Date().getTime();
+  const timeLeft = longAfterEnd - now;
+  setTimeout(() => enableEmbed(broadcastID), timeLeft);
   return { broadcastID, streamID, streamName, };
 }
 
@@ -129,6 +134,35 @@ const getStreamStatus = async streamID => {
   const data = await response.json();
   const { streamStatus } = data.items[0].status;
   return streamStatus;
+}
+
+const enableEmbed = async broadcastID => {
+  const accessToken = await getAccessToken();
+  const query = `${ broadcastEndpoint }?part=contentDetails`;
+  while (true) {
+    const response = await fetch(query, {
+      method: 'put',
+      headers: { Authorization: `Bearer ${ accessToken }` },
+      body: JSON.stringify({
+        id: broadcastID,
+        contentDetails: {
+          enableEmbed: true,
+          enableDvr: true,
+          recordFromStart: true,
+          enableContentEncryption: false,
+          startWithSlate: false,
+          monitorStream: {
+            enableMonitorStream: true,
+            broadcastStreamDelayMs: 0,
+          },
+        },
+      }),
+    });
+    const data = await response.json();
+    console.log(data);
+    if ('id' in data) break;
+    await sleep(10000);
+  }
 }
 
 module.exports = {
